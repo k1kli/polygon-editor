@@ -57,10 +57,13 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tools\AddInMiddleTool.cs" />
+    <Compile Include="Tools\DeleteVertexTool.cs" />
+    <Compile Include="Tools\MoveEdgeTool.cs" />
     <Compile Include="Tools\CreatePolygonTool.cs" />
     <Compile Include="Tools\MovePointTool.cs" />
+    <Compile Include="Tools\MovePolygonTool.cs" />
     <Compile Include="Tools\Tool.cs" />
+    <Compile Include="Tools\VertexInMiddleTool.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

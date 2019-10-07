@@ -9,33 +9,44 @@ namespace PolygonEditor.Figures
 {
     public class Polygon
     {
-        LinkedList<PolyPoint> points;
+        public PolyPoint First { get; private set; }
+        public int PointCount { get; private set; }
         Color color;
-        private LinkedListNode<PolyPoint> selectedPointNode;
-        public PolyPoint? SelectedPoint => selectedPointNode?.Value;
-        public (PolyPoint p1, PolyPoint p2)? SelectedEdge =>
-            selectedPointNode == null ?
-            ((PolyPoint p1, PolyPoint p2) ?) null :
-            (selectedPointNode.Value, selectedPointNode.Next?.Value ?? points.First.Value);
-        public Polygon(PolyPoint p1, PolyPoint p2, PolyPoint p3, Color color)
+        public Polygon(Point[] points, Color color)
         {
-            points = new LinkedList<PolyPoint>();
-            points.AddLast(p1);
-            points.AddLast(p2);
-            points.AddLast(p3);
+            First = new PolyPoint(points[0].X, points[0].Y, this);
+            PolyPoint p = First;
+            for(int i = 1; i < points.Length;i++)
+            {
+                p.Next = new PolyPoint(points[i].X, points[i].Y, this);
+                p.Next.Previous = p;
+                p = p.Next;
+            }
+            p.Next = First;
+            First.Previous = p;
             this.color = color;
+            PointCount = points.Length;
         }
+
+        public bool Remove(PolyPoint polyPoint)
+        {
+            if (PointCount <= 3) return false;
+            polyPoint.Next.Previous = polyPoint.Previous;
+            polyPoint.Previous.Next = polyPoint.Next;
+            if (polyPoint == First) First = polyPoint.Next;
+            PointCount--;
+            return true;
+        }
+
         public void Draw(ArrayBitmap bitmap)
         {
-            LinkedListNode<PolyPoint> node = points.First;
-            while(node.Next != null)
+            PolyPoint point = First;
+            do
             {
-                DrawPoint(bitmap, node.Value);
-                bitmap.DrawLine(node.Value, node.Next.Value, color);
-                node = node.Next;
-            }
-            DrawPoint(bitmap, node.Value);
-            bitmap.DrawLine(node.Value, points.First.Value, color);
+                DrawPoint(bitmap, point);
+                bitmap.DrawLine(point, point.Next, color);
+                point = point.Next;
+            } while (point != First);
         }
 
         const int pointSize = 10;
@@ -51,72 +62,89 @@ namespace PolygonEditor.Figures
                 }
         }
 
-        public int TrySelectPoint(int x, int y, int distanceLimit)
+        public (int dist, PolyPoint p) TrySelectPoint(int x, int y, int distanceLimit)
         {
-            LinkedListNode<PolyPoint> res = null;
-            LinkedListNode<PolyPoint> node = points.First ;
+            PolyPoint res = null;
+            PolyPoint point = First ;
             int minDist = Int32.MaxValue;
-            while(node != null)
+            do
             {
-                int xDist = Math.Abs(node.Value.X - x);
-                int yDist = Math.Abs(node.Value.Y - y);
+                int xDist = Math.Abs(point.X - x);
+                int yDist = Math.Abs(point.Y - y);
                 if ( xDist + yDist  < distanceLimit)
                 {
                     if(res == null || xDist + yDist < minDist)
                     {
-                        res = node;
+                        res = point;
                         minDist = xDist + yDist;
                     }
                 }
-                node = node.Next;
-            }
-            selectedPointNode = res;
-            return selectedPointNode == null ? -1 : minDist;
+                point = point.Next;
+            } while (point != First);
+            return (minDist, res);
         }
 
-        public int TrySelectEdge(int x, int y, int distanceLimit)
+        public (int dist, PolyPoint p1, PolyPoint p2) TrySelectEdge(int x, int y, int distanceLimit)
         {
-            LinkedListNode<PolyPoint> res = null;
-            LinkedListNode<PolyPoint> node = points.First;
+            PolyPoint res = null;
+            PolyPoint point = First;
+            PolyPoint next = null;
+            distanceLimit *= distanceLimit;
             int minDistDifference = Int32.MaxValue;
             int distDifference;
-            while (node != null)
+            do
             {
-                distDifference = DistDifference(x, y, node.Value, node.Next.Value);
+                distDifference = (int)SquareDistToLineSegment(x, y, point, point.Next);
                 if (distDifference < distanceLimit)
                 {
                     if (res == null || distDifference < minDistDifference)
                     {
-                        res = node;
+                        res = point;
                         minDistDifference = distDifference;
+                        next = point.Next;
                     }
                 }
-                node = node.Next;
-            }
-            distDifference = DistDifference(x, y, node.Value, points.First.Value);
-            if (distDifference < distanceLimit)
+                point = point.Next;
+            } while (point != First);
+            if(res != null) distDifference = (int)Math.Sqrt(distDifference);
+            return (distDifference, res, next);
+        }
+
+        public void AddPointBetween(int x, int y, PolyPoint p1, PolyPoint p2)
+        {
+            if (p1.Parent != this || p2.Parent != this) throw new Exception($"This polygon is not the owner of {p1}, {p2}");
+            if(p2.Next == p1)
             {
-                if (res == null || distDifference < minDistDifference)
-                {
-                    res = node;
-                    minDistDifference = distDifference;
-                }
+                PolyPoint buff = p2;
+                p2 = p1;
+                p1 = buff;
             }
-            selectedPointNode = res;
-            return selectedPointNode == null ? -1 : minDistDifference;
+            if (p1.Next != p2) throw new Exception($"These points aren't adjacent");
+            PolyPoint p = p1.Next = p2.Previous = new PolyPoint((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2, this);
+            p.Next = p2;
+            p.Previous = p1;
+            PointCount++;
+            return;
         }
 
-        private int DistDifference(int x, int y, PolyPoint p1, PolyPoint p2)
+        private float SquareDistToLineSegment(int x, int y, PolyPoint p1, PolyPoint p2)
         {
-            int distSqr1 = (x - p1.X) * (x - p1.X) + (y - p1.Y) * (y - p1.Y);
-            int distSqr2 = (x - p2.X) * (x - p2.X) + (y - p2.Y) * (y - p2.Y);
-            int distSqrBetween = (p1.X - p2.X) * (p1.X - p2.X) + (p1.Y - p2.Y) * (p1.Y - p2.Y);
-            return distSqr1 + distSqr2 - distSqrBetween;
+            float squareDist(float x0, float y0, float x1, float y1)
+            {
+                return (x0 -x1) * (x0 - x1) + (y0 - y1) * (y0 - y1);
+            }
+            float dotProduct(float x0, float y0, float x1, float y1)
+            {
+                return x0 * x1 + y0 * y1;
+            }
+            //https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+            float lengthOfSegmentSquared = squareDist(p1.X,p1.Y,p2.X,p2.Y);
+            if (Math.Abs(lengthOfSegmentSquared) < float.Epsilon) return squareDist(x, y, p1.X, p1.Y);
+            float t = Math.Max(0, Math.Min(1, dotProduct(x - p1.X, y - p1.Y, p2.X - p1.X, p2.Y - p1.Y) / lengthOfSegmentSquared));
+            float projectionX = p1.X + t * (p2.X - p1.X);
+            float projectionY = p1.Y + t * (p2.Y - p1.Y);
+            return squareDist(projectionX, projectionY, x, y);
         }
 
-        public void MoveSelectedPoint(int newX, int newY)
-        {
-            selectedPointNode.Value = (newX,newY);
-        }
     }
 }

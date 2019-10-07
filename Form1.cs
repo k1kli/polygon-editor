@@ -17,7 +17,6 @@ namespace PolygonEditor
         private bool mouseDown;
         private Tools.Tool currentTool;
         public List<Figures.Polygon> Polygons { get; } = new List<Figures.Polygon>();
-        public Figures.Polygon SelectedPolygon { get; private set; }
         private const int distanceLimit = 15;
         public EditorForm()
         {
@@ -25,7 +24,7 @@ namespace PolygonEditor
             ArrayBitmap = new ArrayBitmap(canvasPictureBox.Width, canvasPictureBox.Height);
             FilledBitmap = new Bitmap(canvasPictureBox.Width, canvasPictureBox.Height);
 
-            Polygons.Add(new Figures.Polygon((20, 30), (55, 100), (150, 70), Color.ForestGreen));
+            Polygons.Add(new Figures.Polygon(new Point[]{ new Point(20, 30), new Point(55, 100), new Point(150, 70) }, Color.ForestGreen));
             Redraw();
             currentTool = new Tools.MovePointTool(this);
         }
@@ -40,36 +39,56 @@ namespace PolygonEditor
             canvasPictureBox.Invalidate();
         }
 
-        public void SelectPoint(int x, int y)
+        public Figures.PolyPoint SelectPoint(int x, int y)
         {
             int minDist = Int32.MaxValue;
-            SelectedPolygon = null;
+            Figures.PolyPoint res = null;
             foreach(Figures.Polygon polygon in Polygons)
             {
-                int dist = polygon.TrySelectPoint(x, y, distanceLimit);
-                if(dist != -1 && dist < minDist)
+                var (dist, p) = polygon.TrySelectPoint(x, y, distanceLimit);
+                if(p != null && dist < minDist)
                 {
-                    dist = minDist;
-                    SelectedPolygon = polygon;
+                    minDist = dist;
+                    res = p;
                 }
-
             }
+            return res;
         }
 
-        public void SelectEdge(int x, int y)
+        public (Figures.PolyPoint p1, Figures.PolyPoint p2)? SelectEdge(int x, int y)
         {
             int minDist = Int32.MaxValue;
-            SelectedPolygon = null;
+            (Figures.PolyPoint p1, Figures.PolyPoint p2)? res = null;
             foreach (Figures.Polygon polygon in Polygons)
             {
-                int dist = polygon.TrySelectEdge(x, y, distanceLimit);
-                if (dist != -1 && dist < minDist)
+                var (dist, p1, p2) = polygon.TrySelectEdge(x, y, distanceLimit);
+                if (p1 != null && dist < minDist)
                 {
                     dist = minDist;
-                    SelectedPolygon = polygon;
+                    res = (p1, p2);
                 }
-
             }
+            return res;
+        }
+
+        public Figures.Polygon SelectPolygon(int x, int y)
+        {
+            int minDist = Int32.MaxValue;
+            Figures.Polygon res = null;
+            foreach (Figures.Polygon polygon in Polygons)
+            {
+                var (dist, p1, _) = polygon.TrySelectEdge(x, y, distanceLimit);
+                if (p1 != null && dist < minDist)
+                {
+                    dist = minDist;
+                    res = polygon;
+                }
+            }
+            return res;
+        }
+        public void Help(string help)
+        {
+            helpLabel.Text = help;
         }
 
         private void CanvasPictureBox_Paint(object sender, PaintEventArgs e)
@@ -111,6 +130,38 @@ namespace PolygonEditor
             if(moveVertexRadioButton.Checked)
             {
                 currentTool = new Tools.MovePointTool(this);
+            }
+        }
+
+        private void MoveEdgeRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (moveEdgeRadioButton.Checked)
+            {
+                currentTool = new Tools.MoveEdgeTool(this);
+            }
+        }
+
+        private void AddInMiddleRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (AddInMiddleRadioButton.Checked)
+            {
+                currentTool = new Tools.VertexInMiddleTool(this);
+            }
+        }
+
+        private void MovePolygonRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if(movePolygonRadioButton.Checked)
+            {
+                currentTool = new Tools.MovePolygonTool(this);
+            }
+        }
+
+        private void DeleteVertexRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (deleteVertexRadioButton.Checked)
+            {
+                currentTool = new Tools.DeleteVertexTool(this);
             }
         }
     }

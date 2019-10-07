@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PolygonEditor.Figures;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,18 +9,19 @@ namespace PolygonEditor.Tools
 {
     public class MovePointTool : Tool
     {
-        public MovePointTool(EditorForm editorForm) : base(editorForm) { }
-        private int pointX = Int32.MaxValue;
-        private int pointY = Int32.MaxValue;
+        static readonly string help =
+            "Przesuwanie wierzchołka.\nNaciśnij i przytrzymaj lewy przycisk myszy nad wybranym wierzchołkiem i przeciągnij go" +
+                " w wybrane miejsce.";
+        public MovePointTool(EditorForm editorForm) : base(editorForm) { editorForm.Help(help); }
+        private PolyPoint point;
         private int curX;
         private int curY;
         public override void MouseDown(int xPos, int yPos)
         {
-            editorForm.SelectPoint(xPos, yPos);
-            if (editorForm.SelectedPolygon != null)
+            PolyPoint p = editorForm.SelectPoint(xPos, yPos);
+            point = p;
+            if (p != null)
             {
-                pointX = editorForm.SelectedPolygon.SelectedPoint.Value.X;
-                pointY = editorForm.SelectedPolygon.SelectedPoint.Value.Y;
                 curX = xPos;
                 curY = yPos;
             }
@@ -27,11 +29,10 @@ namespace PolygonEditor.Tools
 
         public override void MouseDrag(int xPos, int yPos)
         {
-            if (pointX != Int32.MaxValue)
+            if (point != null)
             {
-                editorForm.SelectedPolygon.MoveSelectedPoint(pointX + xPos - curX, pointY + yPos - curY);
-                pointX = editorForm.SelectedPolygon.SelectedPoint.Value.X;
-                pointY = editorForm.SelectedPolygon.SelectedPoint.Value.Y;
+                point.X += xPos - curX;
+                point.Y += yPos - curY;
                 curX = xPos;
                 curY = yPos;
                 editorForm.Redraw();
@@ -40,8 +41,7 @@ namespace PolygonEditor.Tools
 
         public override void MouseUp(int xPos, int yPos)
         {
-            pointX = Int32.MaxValue;
-            pointY = Int32.MaxValue;
+            point = null;
         }
     }
 }

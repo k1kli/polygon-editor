@@ -150,6 +150,7 @@
             this.movePolygonRadioButton.TabIndex = 4;
             this.movePolygonRadioButton.Text = "Przesuń wielokąt";
             this.movePolygonRadioButton.UseVisualStyleBackColor = true;
+            this.movePolygonRadioButton.CheckedChanged += new System.EventHandler(this.MovePolygonRadioButton_CheckedChanged);
             // 
             // moveEdgeRadioButton
             // 
@@ -160,6 +161,7 @@
             this.moveEdgeRadioButton.TabIndex = 3;
             this.moveEdgeRadioButton.Text = "Przesuń krawędź";
             this.moveEdgeRadioButton.UseVisualStyleBackColor = true;
+            this.moveEdgeRadioButton.CheckedChanged += new System.EventHandler(this.MoveEdgeRadioButton_CheckedChanged);
             // 
             // AddInMiddleRadioButton
             // 
@@ -169,6 +171,7 @@
             this.AddInMiddleRadioButton.TabIndex = 2;
             this.AddInMiddleRadioButton.Text = "Dodaj wierzchołek na środku krawędzi";
             this.AddInMiddleRadioButton.UseVisualStyleBackColor = true;
+            this.AddInMiddleRadioButton.CheckedChanged += new System.EventHandler(this.AddInMiddleRadioButton_CheckedChanged);
             // 
             // deleteVertexRadioButton
             // 
@@ -179,6 +182,7 @@
             this.deleteVertexRadioButton.TabIndex = 1;
             this.deleteVertexRadioButton.Text = "Usuń wierzchołek";
             this.deleteVertexRadioButton.UseVisualStyleBackColor = true;
+            this.deleteVertexRadioButton.CheckedChanged += new System.EventHandler(this.DeleteVertexRadioButton_CheckedChanged);
             // 
             // moveVertexRadioButton
             // 
