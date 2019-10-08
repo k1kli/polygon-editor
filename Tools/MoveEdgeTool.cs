@@ -13,7 +13,7 @@ namespace PolygonEditor.Tools
             "Przesuwanie krawędzi.\nNaciśnij i przytrzymaj lewy przycisk myszy nad wybraną krawędzią i przeciągnij ją" +
                 " w wybrane miejsce.";
         public MoveEdgeTool(EditorForm editorForm) : base(editorForm) { editorForm.Help(help); }
-        (PolyPoint p1, PolyPoint p2)? selectedEdge;
+        Edge selectedEdge;
         int curX, curY;
         public override void MouseDown(int xPos, int yPos)
         {
@@ -27,12 +27,12 @@ namespace PolygonEditor.Tools
 
         public override void MouseDrag(int xPos, int yPos)
         {
-            if (selectedEdge.HasValue)
+            if (!(selectedEdge is null))
             {
-                selectedEdge.Value.p1.X += xPos - curX;
-                selectedEdge.Value.p2.X += xPos - curX;
-                selectedEdge.Value.p1.Y += yPos - curY;
-                selectedEdge.Value.p2.Y += yPos - curY;
+                selectedEdge.Previous.X += xPos - curX;
+                selectedEdge.Next.X += xPos - curX;
+                selectedEdge.Previous.Y += yPos - curY;
+                selectedEdge.Next.Y += yPos - curY;
                 curX = xPos;
                 curY = yPos;
                 editorForm.Redraw();

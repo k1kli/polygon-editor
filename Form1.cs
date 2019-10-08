@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PolygonEditor.Figures;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -17,7 +18,7 @@ namespace PolygonEditor
         private bool mouseDown;
         private Tools.Tool currentTool;
         public List<Figures.Polygon> Polygons { get; } = new List<Figures.Polygon>();
-        private const int distanceLimit = 15;
+        private const int distanceLimit = 30;
         public EditorForm()
         {
             InitializeComponent();
@@ -55,17 +56,17 @@ namespace PolygonEditor
             return res;
         }
 
-        public (Figures.PolyPoint p1, Figures.PolyPoint p2)? SelectEdge(int x, int y)
+        public Edge SelectEdge(int x, int y)
         {
             int minDist = Int32.MaxValue;
-            (Figures.PolyPoint p1, Figures.PolyPoint p2)? res = null;
+            Edge res = null;
             foreach (Figures.Polygon polygon in Polygons)
             {
-                var (dist, p1, p2) = polygon.TrySelectEdge(x, y, distanceLimit);
-                if (p1 != null && dist < minDist)
+                var (dist, edge) = polygon.TrySelectEdge(x, y, distanceLimit);
+                if (edge != null && dist < minDist)
                 {
                     dist = minDist;
-                    res = (p1, p2);
+                    res = edge;
                 }
             }
             return res;
@@ -77,8 +78,8 @@ namespace PolygonEditor
             Figures.Polygon res = null;
             foreach (Figures.Polygon polygon in Polygons)
             {
-                var (dist, p1, _) = polygon.TrySelectEdge(x, y, distanceLimit);
-                if (p1 != null && dist < minDist)
+                var (dist, edge) = polygon.TrySelectEdge(x, y, distanceLimit);
+                if (edge != null && dist < minDist)
                 {
                     dist = minDist;
                     res = polygon;
@@ -162,6 +163,14 @@ namespace PolygonEditor
             if (deleteVertexRadioButton.Checked)
             {
                 currentTool = new Tools.DeleteVertexTool(this);
+            }
+        }
+
+        private void RelationEqualRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (relationEqualRadioButton.Checked)
+            {
+                currentTool = new Tools.RestrictionSameSizeTool(this);
             }
         }
     }

@@ -20,13 +20,12 @@ namespace PolygonEditor.Tools
         }
         private Point[] points = new Point[3];
         int pointIndex = 0;
-        readonly static Random r = new Random();
         public override void MouseDown(int xPos, int yPos)
         {
             points[pointIndex++] = new Point(xPos, yPos);
             if (pointIndex == 3)
             {
-                editorForm.Polygons.Add(new Figures.Polygon(points, RandomColor()));
+                editorForm.Polygons.Add(new Figures.Polygon(points, Helper.RandomColor()));
                 pointIndex = 0;
                 editorForm.Redraw();
             }
@@ -39,10 +38,6 @@ namespace PolygonEditor.Tools
 
         public override void MouseUp(int xPos, int yPos)
         {
-        }
-        private Color RandomColor()
-        {
-            return Color.FromArgb(255, r.Next(0, 256), r.Next(0, 256), r.Next(0, 256));
         }
     }
 }

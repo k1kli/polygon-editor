@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PolygonEditor.VectorOperations;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -18,12 +19,11 @@ namespace PolygonEditor.Figures
             PolyPoint p = First;
             for(int i = 1; i < points.Length;i++)
             {
-                p.Next = new PolyPoint(points[i].X, points[i].Y, this);
-                p.Next.Previous = p;
+                
+                Edge.Link(p, new PolyPoint(points[i].X, points[i].Y, this));
                 p = p.Next;
             }
-            p.Next = First;
-            First.Previous = p;
+            Edge.Link(p, First);
             this.color = color;
             PointCount = points.Length;
         }
@@ -31,12 +31,12 @@ namespace PolygonEditor.Figures
         public bool Remove(PolyPoint polyPoint)
         {
             if (PointCount <= 3) return false;
-            polyPoint.Next.Previous = polyPoint.Previous;
-            polyPoint.Previous.Next = polyPoint.Next;
             if (polyPoint == First) First = polyPoint.Next;
+            Edge.Join(polyPoint.PreviousEdge, polyPoint.NextEdge);
             PointCount--;
             return true;
         }
+
 
         public void Draw(ArrayBitmap bitmap)
         {
@@ -45,9 +45,14 @@ namespace PolygonEditor.Figures
             {
                 DrawPoint(bitmap, point);
                 bitmap.DrawLine(point, point.Next, color);
+                if(point.NextEdge.EnactedRestriction == Edge.Restriction.SameSize)
+                {
+                    DrawSameSizeRestrictionIcon(bitmap, point.NextEdge);
+                }
                 point = point.Next;
             } while (point != First);
         }
+
 
         const int pointSize = 10;
         const int pointSizeDiv2 = pointSize / 2;
@@ -59,6 +64,23 @@ namespace PolygonEditor.Figures
                 for (int y = startY; y <= endY; y++)
                 {
                     bitmap.SetPixel(x, y, color);
+                }
+        }
+        public void DrawSameSizeRestrictionIcon(ArrayBitmap bitmap, Edge e)
+        {
+            Point point = new Point((e.Previous.X + e.Next.X)/2, (e.Previous.Y + e.Next.Y)/2);
+            int startX = point.X - pointSizeDiv2, endX = point.X + pointSizeDiv2;
+            int startY = point.Y - pointSizeDiv2, endY = point.Y + pointSizeDiv2;
+            for (int x = startX; x <= endX; x++)
+                for (int y = startY; y <= endY; y++)
+                {
+                    bitmap.SetPixel(x, y, e.RestrictionData);
+                }
+            int padding = 3;
+            for (int x = startX+ padding; x <= endX- padding; x++)
+                for (int y = startY+ padding; y <= endY- padding; y++)
+                {
+                    bitmap.SetPixel(x, y, Color.White);
                 }
         }
 
@@ -84,30 +106,29 @@ namespace PolygonEditor.Figures
             return (minDist, res);
         }
 
-        public (int dist, PolyPoint p1, PolyPoint p2) TrySelectEdge(int x, int y, int distanceLimit)
+        public (int dist, Edge e) TrySelectEdge(int x, int y, int distanceLimit)
         {
-            PolyPoint res = null;
-            PolyPoint point = First;
-            PolyPoint next = null;
+            Edge res = null;
+            Edge firstEdge = First.NextEdge;
+            Edge edge = firstEdge;
             distanceLimit *= distanceLimit;
             int minDistDifference = Int32.MaxValue;
             int distDifference;
             do
             {
-                distDifference = (int)SquareDistToLineSegment(x, y, point, point.Next);
+                distDifference = (int)SquareDistToLineSegment(new Vector(x, y), edge);
                 if (distDifference < distanceLimit)
                 {
                     if (res == null || distDifference < minDistDifference)
                     {
-                        res = point;
+                        res = edge;
                         minDistDifference = distDifference;
-                        next = point.Next;
                     }
                 }
-                point = point.Next;
-            } while (point != First);
+                edge = edge.Next.NextEdge;
+            } while (edge != firstEdge);
             if(res != null) distDifference = (int)Math.Sqrt(distDifference);
-            return (distDifference, res, next);
+            return (distDifference, res);
         }
 
         public void AddPointBetween(int x, int y, PolyPoint p1, PolyPoint p2)
@@ -120,30 +141,58 @@ namespace PolygonEditor.Figures
                 p1 = buff;
             }
             if (p1.Next != p2) throw new Exception($"These points aren't adjacent");
-            PolyPoint p = p1.Next = p2.Previous = new PolyPoint((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2, this);
-            p.Next = p2;
-            p.Previous = p1;
+            Edge.Split(p1.NextEdge, new PolyPoint((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2, this));
             PointCount++;
             return;
         }
 
-        private float SquareDistToLineSegment(int x, int y, PolyPoint p1, PolyPoint p2)
+        private float SquareDistToLineSegment(Vector point, Edge e)
         {
-            float squareDist(float x0, float y0, float x1, float y1)
-            {
-                return (x0 -x1) * (x0 - x1) + (y0 - y1) * (y0 - y1);
-            }
-            float dotProduct(float x0, float y0, float x1, float y1)
-            {
-                return x0 * x1 + y0 * y1;
-            }
             //https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
-            float lengthOfSegmentSquared = squareDist(p1.X,p1.Y,p2.X,p2.Y);
-            if (Math.Abs(lengthOfSegmentSquared) < float.Epsilon) return squareDist(x, y, p1.X, p1.Y);
-            float t = Math.Max(0, Math.Min(1, dotProduct(x - p1.X, y - p1.Y, p2.X - p1.X, p2.Y - p1.Y) / lengthOfSegmentSquared));
-            float projectionX = p1.X + t * (p2.X - p1.X);
-            float projectionY = p1.Y + t * (p2.Y - p1.Y);
-            return squareDist(projectionX, projectionY, x, y);
+            Vector p1 = e.Previous.GetVector(), p2 = e.Next.GetVector();
+            float mgnSquared = (p2-p1).MagnitudeSqr;
+            if (Math.Abs(mgnSquared) < float.Epsilon) return (point-p1).MagnitudeSqr;
+            float t = Math.Max(0, Math.Min(1, Vector.DotProduct(point-p1, p2-p1) / mgnSquared));
+            Vector projection = p1 + t * (p2 - p1);
+            return (projection-point).MagnitudeSqr;
+        }
+        public void EnactRestriction(Edge e)
+        {
+            //e is the edge to be changed to comform to restriction
+            float desiredLen = e.RelatedEdge.GetLength();
+            Vector previous = e.Previous.GetVector();
+            Vector next = e.Next.GetVector();
+            if (e.PreviousEdge.EnactedRestriction==Edge.Restriction.None)
+            {
+                Vector v = previous - next;
+                v = v * desiredLen / v.Magnitude;
+                e.Previous.FromVector(next + v);
+            }
+            else if (e.NextEdge.EnactedRestriction == Edge.Restriction.None)
+            {
+                Vector v = next - previous;
+                v = v * desiredLen / v.Magnitude;
+                e.Next.FromVector(previous + v);
+            }
+            //else
+            //{
+            //    float curLen = e.GetLength();
+
+            //    PolyPoint flatPrevEnd = e.Previous;
+            //    PolyPoint flatNextEnd = e.Next;
+            //    float remainingLen = desiredLen - curLen;
+            //    while(true)
+            //    {
+            //        float prevLen = flatPrevEnd.PreviousEdge.GetLength();
+            //        if (prevLen > remainingLen) break;
+            //        remainingLen -= prevLen;
+            //        float nextLen = flatNextEnd.NextEdge.GetLength();
+            //        if (nextLen > remainingLen) break;
+            //    }
+            //}
+        }
+        public void ClearRestriction(Edge e)
+        {
         }
 
     }

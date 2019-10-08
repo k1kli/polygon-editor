@@ -13,8 +13,16 @@ namespace PolygonEditor.Figures
         public int Y { get; set; }
         public Polygon Parent { get; }
 
-        public PolyPoint Next { get; set; }
-        public PolyPoint Previous { get; set; }
+        public void FromVector(VectorOperations.Vector v)
+        {
+            X = (int)v.X;
+            Y = (int)v.Y;
+        }
+
+        public PolyPoint Next => NextEdge.Next;
+        public PolyPoint Previous => PreviousEdge.Previous;
+        public Edge NextEdge { get; set; }
+        public Edge PreviousEdge { get; set; }
         public PolyPoint(int x, int y, Polygon parent)
         {
             X = x;
@@ -26,5 +34,7 @@ namespace PolygonEditor.Figures
         {
             return Parent.Remove(this);
         }
+
+        public VectorOperations.Vector GetVector() => new VectorOperations.Vector() { X = X, Y = Y };
     }
 }

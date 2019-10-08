@@ -14,11 +14,11 @@ namespace PolygonEditor.Tools
         public override void MouseDown(int xPos, int yPos)
         {
             var edge = editorForm.SelectEdge(xPos, yPos);
-            if(edge.HasValue)
+            if(!(edge is null))
             {
-                int x = (edge.Value.p1.X + edge.Value.p2.X)/2;
-                int y = (edge.Value.p1.Y + edge.Value.p2.Y) / 2;
-                edge.Value.p1.Parent.AddPointBetween(x,y,edge.Value.p1, edge.Value.p2);
+                int x = (edge.Previous.X + edge.Next.X)/2;
+                int y = (edge.Previous.Y + edge.Next.Y) / 2;
+                edge.Previous.Parent.AddPointBetween(x,y,edge.Previous, edge.Next);
                 editorForm.Redraw();
             }
         }

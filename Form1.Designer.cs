@@ -140,6 +140,7 @@
             this.relationEqualRadioButton.TabIndex = 5;
             this.relationEqualRadioButton.Text = "Równa długość";
             this.relationEqualRadioButton.UseVisualStyleBackColor = true;
+            this.relationEqualRadioButton.CheckedChanged += new System.EventHandler(this.RelationEqualRadioButton_CheckedChanged);
             // 
             // movePolygonRadioButton
             // 
