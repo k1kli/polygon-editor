@@ -27,12 +27,17 @@ namespace PolygonEditor.Figures
             return (Previous.GetVector() - Next.GetVector()).Magnitude;
         }
 
+        public void MoveWithRestrictions(VectorOperations.Vector delta)
+        {
+            parent.MoveEdgeWithRestrictions(this, delta);
+        }
+
 
         public static void SetRestriction(Restriction newRestriction, Edge e1, Edge e2, int restrictionData = 0)
         {
             if (newRestriction == Restriction.None) throw new Exception("To clear restrictions use Clear method instead");
-            if (e1.EnactedRestriction != Restriction.None) ClearRestriction(e1);
-            if (e2.EnactedRestriction != Restriction.None) ClearRestriction(e2);
+            if (e1.EnactedRestriction != Restriction.None) e1.ClearRestriction();
+            if (e2.EnactedRestriction != Restriction.None) e2.ClearRestriction();
             e1.EnactedRestriction = newRestriction;
             e2.EnactedRestriction = newRestriction;
             e1.RelatedEdge = e2;
@@ -40,12 +45,13 @@ namespace PolygonEditor.Figures
             e1.parent.EnactRestriction(e2);
             e1.RestrictionData = e2.RestrictionData = restrictionData;
         }
-        public static void ClearRestriction(Edge e)
+        public void ClearRestriction()
         {
-            e.parent.ClearRestriction(e);
-            e.RelatedEdge.EnactedRestriction = e.EnactedRestriction = Restriction.None;
-            e.RelatedEdge.RelatedEdge = null;
-            e.RelatedEdge = null;
+            if (EnactedRestriction == Restriction.None) return;
+            parent.ClearRestriction(this);
+            RelatedEdge.EnactedRestriction = EnactedRestriction = Restriction.None;
+            RelatedEdge.RelatedEdge = null;
+            RelatedEdge = null;
         }
         public PolyPoint GetOpposite(PolyPoint p)
         {

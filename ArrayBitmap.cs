@@ -52,14 +52,14 @@ namespace PolygonEditor
             int argb = color.ToArgb();
             if (Math.Abs(p2.Y - p1.Y) < Math.Abs(p2.X - p1.X))
                 if (p1.X > p2.X)
-                    PlotLineLow(p2.X, p2.Y, p1.X, p1.Y, argb);
+                    PlotLineLow((int)p2.X, (int)p2.Y, (int)p1.X, (int)p1.Y, argb);
                 else
-                    PlotLineLow(p1.X, p1.Y, p2.X, p2.Y, argb);
+                    PlotLineLow((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y, argb);
             else
                 if (p1.Y > p2.Y)
-                    PlotLineHigh(p2.X, p2.Y, p1.X, p1.Y, argb);
+                    PlotLineHigh((int)p2.X, (int)p2.Y, (int)p1.X, (int)p1.Y, argb);
                 else
-                    PlotLineHigh(p1.X, p1.Y, p2.X, p2.Y, argb);
+                    PlotLineHigh((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y, argb);
         }
 
         private void PlotLineHigh(int x0, int y0, int x1, int y1, int argb)

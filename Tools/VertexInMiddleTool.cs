@@ -16,9 +16,7 @@ namespace PolygonEditor.Tools
             var edge = editorForm.SelectEdge(xPos, yPos);
             if(!(edge is null))
             {
-                int x = (edge.Previous.X + edge.Next.X)/2;
-                int y = (edge.Previous.Y + edge.Next.Y) / 2;
-                edge.Previous.Parent.AddPointBetween(x,y,edge.Previous, edge.Next);
+                edge.Previous.Parent.AddPointBetween(edge.Previous, edge.Next);
                 editorForm.Redraw();
             }
         }

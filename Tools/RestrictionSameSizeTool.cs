@@ -20,7 +20,10 @@ namespace PolygonEditor.Tools
             {
                 Figures.Edge secondEdge = editorForm.SelectEdge(xPos, yPos);
                 if (secondEdge is null || secondEdge == firstEdge) return;
-                Figures.Edge.SetRestriction(Figures.Edge.Restriction.SameSize, firstEdge, secondEdge, Helper.RandomColor().ToArgb());
+                if (firstEdge.RelatedEdge == secondEdge && firstEdge.EnactedRestriction == Figures.Edge.Restriction.SameSize)
+                    firstEdge.ClearRestriction();
+                else
+                    Figures.Edge.SetRestriction(Figures.Edge.Restriction.SameSize, firstEdge, secondEdge, Helper.RandomColor().ToArgb());
                 editorForm.Redraw();
                 firstEdge = null;
             }

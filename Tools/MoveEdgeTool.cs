@@ -29,10 +29,7 @@ namespace PolygonEditor.Tools
         {
             if (!(selectedEdge is null))
             {
-                selectedEdge.Previous.X += xPos - curX;
-                selectedEdge.Next.X += xPos - curX;
-                selectedEdge.Previous.Y += yPos - curY;
-                selectedEdge.Next.Y += yPos - curY;
+                selectedEdge.MoveWithRestrictions(new VectorOperations.Vector(xPos - curX, yPos - curY));
                 curX = xPos;
                 curY = yPos;
                 editorForm.Redraw();

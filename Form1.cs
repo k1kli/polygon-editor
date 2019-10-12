@@ -17,6 +17,7 @@ namespace PolygonEditor
         private Bitmap FilledBitmap;
         private bool mouseDown;
         private Tools.Tool currentTool;
+        private bool drawGrid;
         public List<Figures.Polygon> Polygons { get; } = new List<Figures.Polygon>();
         private const int distanceLimit = 30;
         public EditorForm()
@@ -96,6 +97,19 @@ namespace PolygonEditor
         {
             ArrayBitmap.FillBitmap(FilledBitmap);
             e.Graphics.DrawImageUnscaled(FilledBitmap, 0, 0);
+            if (drawGrid)
+            {
+                for (int x = 0; x < canvasPictureBox.Width; x += 50)
+                {
+                    e.Graphics.DrawLine(Pens.Black, x, 0, x, canvasPictureBox.Height);
+                    e.Graphics.DrawString(x.ToString(), Font, Brushes.Black, x + 10, 10);
+                }
+                for (int y = 0; y < canvasPictureBox.Height; y += 50)
+                {
+                    e.Graphics.DrawLine(Pens.Black, 0, y, canvasPictureBox.Width, y);
+                    e.Graphics.DrawString(y.ToString(), Font, Brushes.Black, 10, y + 10);
+                }
+            }
         }
 
         private void CanvasPictureBox_MouseDown(object sender, MouseEventArgs e)
@@ -172,6 +186,12 @@ namespace PolygonEditor
             {
                 currentTool = new Tools.RestrictionSameSizeTool(this);
             }
+        }
+
+        private void SiatkaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            drawGrid = siatkaToolStripMenuItem.Checked = !siatkaToolStripMenuItem.Checked;
+            Redraw();
         }
     }
 }

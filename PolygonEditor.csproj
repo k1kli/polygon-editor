@@ -67,6 +67,8 @@
     <Compile Include="Tools\RestrictionSameSizeTool.cs" />
     <Compile Include="Tools\Tool.cs" />
     <Compile Include="Tools\VertexInMiddleTool.cs" />
+    <Compile Include="VectorOperations\Circle.cs" />
+    <Compile Include="VectorOperations\HelperMethods.cs" />
     <Compile Include="VectorOperations\Vector.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

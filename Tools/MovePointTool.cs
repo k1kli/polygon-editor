@@ -31,8 +31,7 @@ namespace PolygonEditor.Tools
         {
             if (point != null)
             {
-                point.X += xPos - curX;
-                point.Y += yPos - curY;
+                point.MoveWithRestrictions(new VectorOperations.Vector(xPos - curX, yPos - curY));
                 curX = xPos;
                 curY = yPos;
                 editorForm.Redraw();
