@@ -3,21 +3,30 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace PolygonEditor
 {
-    public class ArrayBitmap
+    //https://stackoverflow.com/questions/24701703/c-sharp-faster-alternatives-to-setpixel-and-getpixel-for-bitmaps-for-windows-f
+    public class MemoryBitmap
     {
-        public int XSize { get; }
-        public int YSize { get; }
+        public Bitmap Bitmap { get; private set; }
+        public Int32[] Bits { get; private set; }
+        public bool Disposed { get; private set; }
+        public int Width { get; }
+        public int Height { get; }
         private int[] bitmap;
-        public ArrayBitmap(int xSize, int ySize)
+        protected GCHandle BitsHandle { get; private set; }
+        public MemoryBitmap(int xSize, int ySize)
         {
             bitmap = new int[xSize*ySize];
-            XSize = xSize;
-            YSize = ySize;
+            Width = xSize;
+            Height = ySize;
+            Bits = new Int32[Width * Height];
+            BitsHandle = GCHandle.Alloc(Bits, GCHandleType.Pinned);
+            Bitmap = new Bitmap(Width, Height, Width * 4, PixelFormat.Format32bppPArgb, BitsHandle.AddrOfPinnedObject());
         }
         public void SetPixel(int x, int y, Color color)
         {
@@ -25,26 +34,33 @@ namespace PolygonEditor
         }
         public void SetPixel(int x, int y, int argb)
         {
-            if (x < 0 || x >= XSize || y < 0 || y >= YSize) return;
-            bitmap[x + y * XSize] = argb;
+            if (x < 0 || x >= Width || y < 0 || y >= Height) return;
+
+            int index = x + (y * Width);
+            int col = argb;
+
+            Bits[index] = col;
+        }
+        public Color GetPixel(int x, int y)
+        {
+            if (x < 0 || x >= Width || y < 0 || y >= Height) throw new IndexOutOfRangeException();
+            int index = x + (y * Width);
+            int col = Bits[index];
+            Color result = Color.FromArgb(col);
+
+            return result;
         }
         public void Clear()
         {
             int white = Color.White.ToArgb();
-            for (int i = 0; i < bitmap.Length; i++) bitmap[i] = white;
+            for (int i = 0; i < Bits.Length; i++) Bits[i] = white;
         }
-        //https://docs.microsoft.com/pl-pl/dotnet/api/system.drawing.bitmap.lockbits?view=netframework-4.8
-        public void FillBitmap(Bitmap toFill)
+        public void Dispose()
         {
-            Rectangle rect = new Rectangle(0, 0, toFill.Width, toFill.Height);
-            PixelFormat pxf = PixelFormat.Format32bppArgb;
-            Bitmap bmp = toFill.Clone(rect, pxf);
-
-            BitmapData bmpData = toFill.LockBits(rect, ImageLockMode.ReadWrite,toFill.PixelFormat);
-
-            IntPtr ptr = bmpData.Scan0;
-            System.Runtime.InteropServices.Marshal.Copy(bitmap, 0, ptr, bitmap.Length);
-            toFill.UnlockBits(bmpData);
+            if (Disposed) return;
+            Disposed = true;
+            Bitmap.Dispose();
+            BitsHandle.Free();
         }
 
         public void DrawLine(Figures.PolyPoint p1, Figures.PolyPoint p2, Color color)

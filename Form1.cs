@@ -13,8 +13,7 @@ namespace PolygonEditor
 {
     public partial class EditorForm : Form
     {
-        public ArrayBitmap ArrayBitmap { get; }
-        private Bitmap FilledBitmap;
+        public MemoryBitmap MemoryBitmap { get; }
         private bool mouseDown;
         private Tools.Tool currentTool;
         private bool drawGrid;
@@ -23,20 +22,25 @@ namespace PolygonEditor
         public EditorForm()
         {
             InitializeComponent();
-            ArrayBitmap = new ArrayBitmap(canvasPictureBox.Width, canvasPictureBox.Height);
-            FilledBitmap = new Bitmap(canvasPictureBox.Width, canvasPictureBox.Height);
+            MemoryBitmap = new MemoryBitmap(canvasPictureBox.Width, canvasPictureBox.Height);
 
             Polygons.Add(new Figures.Polygon(new Point[]{ new Point(20, 30), new Point(55, 100), new Point(150, 70) }, Color.ForestGreen));
             Redraw();
             currentTool = new Tools.MovePointTool(this);
         }
 
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+            MemoryBitmap.Dispose();
+        }
+
         public void Redraw()
         {
-            ArrayBitmap.Clear();
+            MemoryBitmap.Clear();
             foreach(Figures.Polygon polygon in Polygons)
             {
-                polygon.Draw(ArrayBitmap);
+                polygon.Draw(MemoryBitmap);
             }
             canvasPictureBox.Invalidate();
         }
@@ -95,8 +99,8 @@ namespace PolygonEditor
 
         private void CanvasPictureBox_Paint(object sender, PaintEventArgs e)
         {
-            ArrayBitmap.FillBitmap(FilledBitmap);
-            e.Graphics.DrawImageUnscaled(FilledBitmap, 0, 0);
+            Bitmap b = MemoryBitmap.Bitmap;
+            e.Graphics.DrawImageUnscaled(b, 0, 0);
             if (drawGrid)
             {
                 for (int x = 0; x < canvasPictureBox.Width; x += 50)

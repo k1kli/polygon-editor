@@ -46,7 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArrayBitmap.cs" />
+    <Compile Include="MemoryBitmap.cs" />
     <Compile Include="Figures\Edge.cs" />
     <Compile Include="Figures\PolyPoint.cs" />
     <Compile Include="Figures\Polygon.cs" />

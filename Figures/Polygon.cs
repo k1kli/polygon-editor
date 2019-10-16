@@ -58,7 +58,7 @@ namespace PolygonEditor.Figures
                 EnactRestriction(point.NextEdge.RelatedEdge);
         }
 
-        public void Draw(ArrayBitmap bitmap)
+        public void Draw(MemoryBitmap bitmap)
         {
             PolyPoint point = First;
             do
@@ -76,7 +76,7 @@ namespace PolygonEditor.Figures
 
         const int pointSize = 10;
         const int pointSizeDiv2 = pointSize / 2;
-        public void DrawPoint(ArrayBitmap bitmap, PolyPoint point)
+        public void DrawPoint(MemoryBitmap bitmap, PolyPoint point)
         {
             int startX = (int)point.X - pointSizeDiv2, endX = (int)point.X + pointSizeDiv2;
             int startY = (int)point.Y - pointSizeDiv2, endY = (int)point.Y + pointSizeDiv2;
@@ -86,7 +86,7 @@ namespace PolygonEditor.Figures
                     bitmap.SetPixel(x, y, color);
                 }
         }
-        public void DrawSameSizeRestrictionIcon(ArrayBitmap bitmap, Edge e)
+        public void DrawSameSizeRestrictionIcon(MemoryBitmap bitmap, Edge e)
         {
             Point point = new Point(((int)e.Previous.X + (int)e.Next.X)/2, ((int)e.Previous.Y + (int)e.Next.Y)/2);
             int startX = point.X - pointSizeDiv2, endX = point.X + pointSizeDiv2;
