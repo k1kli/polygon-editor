@@ -21,7 +21,7 @@ namespace PolygonEditor
         protected GCHandle BitsHandle { get; private set; }
         public MemoryBitmap(int xSize, int ySize)
         {
-            bitmap = new int[xSize*ySize];
+            bitmap = new int[xSize * ySize];
             Width = xSize;
             Height = ySize;
             Bits = new Int32[Width * Height];
@@ -35,7 +35,10 @@ namespace PolygonEditor
         public void SetPixel(int x, int y, int argb)
         {
             if (x < 0 || x >= Width || y < 0 || y >= Height) return;
-
+            RawSetPixel(x, y, argb);
+        }
+        private void RawSetPixel(int x, int y, int argb)
+        {
             int index = x + (y * Width);
             int col = argb;
 
@@ -63,19 +66,36 @@ namespace PolygonEditor
             BitsHandle.Free();
         }
 
-        public void DrawLine(Figures.PolyPoint p1, Figures.PolyPoint p2, Color color)
+        public void DrawPoint(int posX, int posY, Color color, int size)
+        {
+            int sizeDiv2 = size / 2;
+            int c = color.ToArgb();
+            int startX = Math.Max((int)posX - sizeDiv2, 0), endX = Math.Min((int)posX + sizeDiv2, Width - 1);
+            int startY = Math.Max((int)posY - sizeDiv2, 0), endY = Math.Min((int)posY + sizeDiv2, Height - 1);
+            for (int x = startX; x <= endX; x++)
+                for (int y = startY; y <= endY; y++)
+                {
+                    RawSetPixel(x, y, c);
+                }
+        }
+        public void DrawLine(int x0, int y0, int x1, int y1, Color color)
         {
             int argb = color.ToArgb();
-            if (Math.Abs(p2.Y - p1.Y) < Math.Abs(p2.X - p1.X))
-                if (p1.X > p2.X)
-                    PlotLineLow((int)p2.X, (int)p2.Y, (int)p1.X, (int)p1.Y, argb);
+            if (Math.Abs(y1 - y0) < Math.Abs(x1 - x0))
+                if (x0 > x1)
+                    PlotLineLow(x1, y1, x0, y0, argb);
                 else
-                    PlotLineLow((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y, argb);
+                    PlotLineLow(x0, y0, x1, y1, argb);
             else
-                if (p1.Y > p2.Y)
-                    PlotLineHigh((int)p2.X, (int)p2.Y, (int)p1.X, (int)p1.Y, argb);
-                else
-                    PlotLineHigh((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y, argb);
+                if (y0 > y1)
+                PlotLineHigh(x1, y1, x0, y0, argb);
+            else
+                PlotLineHigh(x0, y0, x1, y1, argb);
+        }
+
+        public void DrawLine(Figures.PolyPoint p1, Figures.PolyPoint p2, Color color)
+        {
+            DrawLine((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y, color);
         }
 
         private void PlotLineHigh(int x0, int y0, int x1, int y1, int argb)
@@ -91,10 +111,10 @@ namespace PolygonEditor
             int D = 2 * dx - dy;
             int x = x0;
 
-            for(int y = y0; y <= y1; y++)
+            for (int y = y0; y <= y1; y++)
             {
                 SetPixel(x, y, argb);
-                if(D>0)
+                if (D > 0)
                 {
                     x = x + xi;
                     D = D - 2 * dy;

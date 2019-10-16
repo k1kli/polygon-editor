@@ -38,5 +38,7 @@ namespace PolygonEditor.Tools
         public override void MouseUp(int xPos, int yPos)
         {
         }
+
+
     }
 }

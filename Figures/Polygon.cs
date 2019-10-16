@@ -63,46 +63,17 @@ namespace PolygonEditor.Figures
             PolyPoint point = First;
             do
             {
-                DrawPoint(bitmap, point);
+                bitmap.DrawPoint((int)point.X, (int)point.Y, color, Helper.pointSize);
                 bitmap.DrawLine(point, point.Next, color);
                 if(point.NextEdge.EnactedRestriction == Edge.Restriction.SameSize)
                 {
-                    DrawSameSizeRestrictionIcon(bitmap, point.NextEdge);
+                    Helper.DrawRestrictionSameSize(point.NextEdge, bitmap);
                 }
                 point = point.Next;
             } while (point != First);
         }
 
 
-        const int pointSize = 10;
-        const int pointSizeDiv2 = pointSize / 2;
-        public void DrawPoint(MemoryBitmap bitmap, PolyPoint point)
-        {
-            int startX = (int)point.X - pointSizeDiv2, endX = (int)point.X + pointSizeDiv2;
-            int startY = (int)point.Y - pointSizeDiv2, endY = (int)point.Y + pointSizeDiv2;
-            for (int x = startX; x <= endX; x++)
-                for (int y = startY; y <= endY; y++)
-                {
-                    bitmap.SetPixel(x, y, color);
-                }
-        }
-        public void DrawSameSizeRestrictionIcon(MemoryBitmap bitmap, Edge e)
-        {
-            Point point = new Point(((int)e.Previous.X + (int)e.Next.X)/2, ((int)e.Previous.Y + (int)e.Next.Y)/2);
-            int startX = point.X - pointSizeDiv2, endX = point.X + pointSizeDiv2;
-            int startY = point.Y - pointSizeDiv2, endY = point.Y + pointSizeDiv2;
-            for (int x = startX; x <= endX; x++)
-                for (int y = startY; y <= endY; y++)
-                {
-                    bitmap.SetPixel(x, y, e.RestrictionData);
-                }
-            int padding = 3;
-            for (int x = startX+ padding; x <= endX- padding; x++)
-                for (int y = startY+ padding; y <= endY- padding; y++)
-                {
-                    bitmap.SetPixel(x, y, Color.White);
-                }
-        }
 
         public (int dist, PolyPoint p) TrySelectPoint(int x, int y, int distanceLimit)
         {

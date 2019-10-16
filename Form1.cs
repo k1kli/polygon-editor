@@ -25,8 +25,8 @@ namespace PolygonEditor
             MemoryBitmap = new MemoryBitmap(canvasPictureBox.Width, canvasPictureBox.Height);
 
             Polygons.Add(new Figures.Polygon(new Point[]{ new Point(20, 30), new Point(55, 100), new Point(150, 70) }, Color.ForestGreen));
-            Redraw();
             currentTool = new Tools.MovePointTool(this);
+            Redraw();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -42,6 +42,7 @@ namespace PolygonEditor
             {
                 polygon.Draw(MemoryBitmap);
             }
+            currentTool.OnDrawGizmos();
             canvasPictureBox.Invalidate();
         }
 
@@ -128,6 +129,7 @@ namespace PolygonEditor
             {
                 currentTool.MouseDrag(e.X, e.Y);
             }
+            currentTool.MouseMove(e.X, e.Y);
         }
 
         private void CanvasPictureBox_MouseUp(object sender, MouseEventArgs e)

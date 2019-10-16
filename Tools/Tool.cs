@@ -11,10 +11,12 @@ namespace PolygonEditor.Tools
         public abstract void MouseDown(int xPos, int yPos);
         public abstract void MouseUp(int xPos, int yPos);
         public abstract void MouseDrag(int xPos, int yPos);
+        public virtual void MouseMove(int xPos, int yPos) { }
         protected EditorForm editorForm;
         public Tool(EditorForm editorForm)
         {
             this.editorForm = editorForm;
         }
+        public virtual void OnDrawGizmos() { }
     }
 }

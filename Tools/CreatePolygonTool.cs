@@ -10,26 +10,46 @@ namespace PolygonEditor.Tools
     class CreatePolygonTool : Tool
     {
         static readonly string[] help = {
-            "Tworzenie wielokąta.\nZaznacz 3 pozycje, które będą wierzchołkami nowo powstałego wielokąta.",
-            "Tworzenie wielokąta.\nZaznacz jeszcze 2 pozycje.",
-            "Tworzenie wielokąta.\nZaznacz jeszcze jedną pozycję.",
+            "Tworzenie wielokąta.\nZaznacz pierwszy punkt wielokąta.",
+            "Tworzenie wielokąta.\nZaznacz więcej punktów wielokąta.",
+            "Tworzenie wielokąta.\nZaznacz więcej punktów wielokąta. Aby zakończyć rysowanie wielokąta kliknij punkt początkowy",
         };
         public CreatePolygonTool(EditorForm editorForm) : base(editorForm)
         {
             editorForm.Help(help[0]);
+            currentPolygonColor = Helper.RandomColor();
         }
-        private Point[] points = new Point[3];
-        int pointIndex = 0;
+        private List<Point> points = new List<Point>();
+        Color currentPolygonColor;
+        int curX, curY;
+        const int tolerance = 10;
+        bool withinToleranceForClosing = false;
         public override void MouseDown(int xPos, int yPos)
         {
-            points[pointIndex++] = new Point(xPos, yPos);
-            if (pointIndex == 3)
+            if (withinToleranceForClosing)
             {
-                editorForm.Polygons.Add(new Figures.Polygon(points, Helper.RandomColor()));
-                pointIndex = 0;
+                editorForm.Polygons.Add(new Figures.Polygon(points.ToArray(), currentPolygonColor));
+                points.Clear();
+                withinToleranceForClosing = false;
+                currentPolygonColor = Helper.RandomColor();
                 editorForm.Redraw();
             }
-            editorForm.Help(help[pointIndex]);
+            else
+            {
+                points.Add(new Point(xPos, yPos));
+            }
+            switch(points.Count)
+            {
+                case 0:
+                    editorForm.Help(help[0]);
+                    break;
+                case 1: case 2:
+                    editorForm.Help(help[1]);
+                    break;
+                default:
+                    editorForm.Help(help[2]);
+                    break;
+            }
         }
 
         public override void MouseDrag(int xPos, int yPos)
@@ -38,6 +58,29 @@ namespace PolygonEditor.Tools
 
         public override void MouseUp(int xPos, int yPos)
         {
+        }
+        public override void MouseMove(int xPos, int yPos)
+        {
+            curX = xPos;
+            curY = yPos;
+            withinToleranceForClosing = points.Count > 2 && Math.Abs(xPos - points[0].X) < tolerance && Math.Abs(yPos - points[0].Y) < tolerance;
+            editorForm.Redraw();
+        }
+        public override void OnDrawGizmos()
+        {
+            if(withinToleranceForClosing)
+            {
+                curX = points[0].X;
+                curY = points[0].Y;
+
+            }
+            for(int i = 0; i < points.Count; i++)
+            {
+                editorForm.MemoryBitmap.DrawPoint(points[i].X, points[i].Y, currentPolygonColor,Helper.pointSize);
+                if (i != points.Count - 1) editorForm.MemoryBitmap.DrawLine(points[i].X, points[i].Y, points[i + 1].X, points[i + 1].Y, currentPolygonColor);
+                else editorForm.MemoryBitmap.DrawLine(points[i].X, points[i].Y, curX, curY, currentPolygonColor);
+            }
+            editorForm.MemoryBitmap.DrawPoint(curX, curY, withinToleranceForClosing ? Color.Black : currentPolygonColor, Helper.pointSize);
         }
     }
 }
