@@ -42,7 +42,7 @@ namespace PolygonEditor.Figures
             e2.EnactedRestriction = newRestriction;
             e1.RelatedEdge = e2;
             e2.RelatedEdge = e1;
-            e1.parent.EnactRestriction(e2);
+            e1.parent.EnactRestriction(e2, true);
             e1.RestrictionData = e2.RestrictionData = restrictionData;
         }
         public void ClearRestriction()

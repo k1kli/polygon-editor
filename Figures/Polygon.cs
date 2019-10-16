@@ -13,6 +13,8 @@ namespace PolygonEditor.Figures
         public PolyPoint First { get; private set; }
         public int PointCount { get; private set; }
         Color color;
+        private PolyPoint movedPoint = null;
+        private Edge movedEdge = null;
         public Polygon(Point[] points, Color color)
         {
             First = new PolyPoint(points[0].X, points[0].Y, this);
@@ -41,21 +43,25 @@ namespace PolygonEditor.Figures
 
         public void MoveEdgeWithRestrictions(Edge edge, Vector delta)
         {
+            movedEdge = edge;
             edge.Previous.FromVector(edge.Previous.GetVector() + delta);
             edge.Next.FromVector(edge.Next.GetVector() + delta);
             if (edge.PreviousEdge.EnactedRestriction != Edge.Restriction.None)
-                EnactRestriction(edge.PreviousEdge.RelatedEdge);
+                EnactRestriction(edge.PreviousEdge.RelatedEdge, true);
             if (edge.NextEdge.EnactedRestriction != Edge.Restriction.None)
-                EnactRestriction(edge.NextEdge.RelatedEdge);
+                EnactRestriction(edge.NextEdge.RelatedEdge, false);
+            movedEdge = null;
         }
 
         public void MoveVertexWithRestrictions(PolyPoint point, Vector delta)
         {
+            movedPoint = point;
             point.FromVector(point.GetVector() + delta);
             if(point.PreviousEdge.EnactedRestriction != Edge.Restriction.None)
-                EnactRestriction(point.PreviousEdge.RelatedEdge);
+                EnactRestriction(point.PreviousEdge.RelatedEdge, true);
             if (point.NextEdge.EnactedRestriction != Edge.Restriction.None)
-                EnactRestriction(point.NextEdge.RelatedEdge);
+                EnactRestriction(point.NextEdge.RelatedEdge, false);
+            movedPoint = null;
         }
 
         public void Draw(MemoryBitmap bitmap)
@@ -148,74 +154,88 @@ namespace PolygonEditor.Figures
             Vector projection = p1 + t * (p2 - p1);
             return (projection-point).MagnitudeSqr;
         }
-        public void EnactRestriction(Edge e)
+        private Stack<(Edge e, bool movePointForward)> enactionQueue = new Stack<(Edge e, bool movePointForward)>();
+        public void EnactRestriction(Edge e, bool movePointForward)
         {
+            enactionQueue.Push((e, movePointForward));
+            while(enactionQueue.Count > 0)
+            {
+                EnactRestrictions();
+            }
+        }
+        private void EnactRestrictions()
+        {
+            var (e, movePointForward) = enactionQueue.Pop();
             //e is the edge to be changed to comform to restriction
             float desiredLen = e.RelatedEdge.GetLength();
             Vector previous = e.Previous.GetVector();
             Vector next = e.Next.GetVector();
             if (Math.Abs((previous - next).MagnitudeSqr - desiredLen * desiredLen) < 1) return;
-            if (e.PreviousEdge.EnactedRestriction==Edge.Restriction.None)
+            if (!movePointForward)
             {
                 Vector v = previous - next;
                 v = v * desiredLen / v.Magnitude;
+                if (e.PreviousEdge.EnactedRestriction == Edge.Restriction.SameSize)
+                {
+                    Vector[] intersectionPoints = new Circle(e.Previous.Previous.GetVector(), e.PreviousEdge.GetLength())
+                        .GetIntersectionPointsWith(new Circle(e.Next.GetVector(), desiredLen));
+
+                    if (intersectionPoints.Length != 0)
+                    {
+                        e.Previous.FromVector(
+                            ChooseBestReplacementPoint(
+                                intersectionPoints, e.Previous.GetVector(), e.Next.GetVector()));
+                        return;
+                    }
+                }
                 e.Previous.FromVector(next + v);
-            }
-            else if (e.NextEdge.EnactedRestriction == Edge.Restriction.None)
-            {
-                Vector v = next - previous;
-                v = v * desiredLen / v.Magnitude;
-                e.Next.FromVector(previous + v);
-            }
-            else if (e.NextEdge == e.RelatedEdge)
-            {
-                //RotateToConnect(e, desiredLen, true);
-                if (desiredLen * 2 < (previous - e.RelatedEdge.Next.GetVector()).Magnitude)
+                if(e.PreviousEdge.EnactedRestriction != Edge.Restriction.None)
                 {
-                    e.Next.FromVector((previous + e.RelatedEdge.Next.GetVector()) / 2);
-                }
-                else
-                {
-                    Vector[] possibleConnectionPoints = new Circle(previous, desiredLen)
-                        .GetIntersectionPointsWith(new Circle(e.RelatedEdge.Next.GetVector(), desiredLen));
-
-                    if (possibleConnectionPoints.Length == 1 ||
-                        Vector.DotProduct((possibleConnectionPoints[0] - previous).Normalized, (next - previous).Normalized) >
-                        Vector.DotProduct((possibleConnectionPoints[1] - previous).Normalized, (next - previous).Normalized))
-                        e.Next.FromVector(possibleConnectionPoints[0]);
-                    else
-                    {
-                        e.Next.FromVector(possibleConnectionPoints[1]);
-                    }
-                }
-            }
-            else if (e.PreviousEdge == e.RelatedEdge)
-            {
-                //RotateToConnect(e, desiredLen, false);
-                if (desiredLen * 2 < (next - e.RelatedEdge.Previous.GetVector()).Magnitude)
-                {
-                    e.Previous.FromVector((next + e.RelatedEdge.Previous.GetVector()) / 2);
-                }
-                else
-                {
-                    Vector[] possibleConnectionPoints = new Circle(next, desiredLen)
-                        .GetIntersectionPointsWith(new Circle(e.RelatedEdge.Previous.GetVector(), desiredLen));
-
-                    if (possibleConnectionPoints.Length == 1 ||
-                        Vector.DotProduct((possibleConnectionPoints[0] - next).Normalized, (previous - next).Normalized) >
-                        Vector.DotProduct((possibleConnectionPoints[1] - next).Normalized, (previous - next).Normalized))
-                        e.Previous.FromVector(possibleConnectionPoints[0]);
-                    else
-                    {
-                        e.Previous.FromVector(possibleConnectionPoints[1]);
-                    }
+                    enactionQueue.Push((e.PreviousEdge.RelatedEdge, !movePointForward));
                 }
             }
             else
             {
-                if (!RotateToConnect(e, desiredLen, true))
-                    RotateToConnect(e, desiredLen, false);
+                Vector v = next - previous;
+                v = v * desiredLen / v.Magnitude;
+                if (e.NextEdge.EnactedRestriction == Edge.Restriction.SameSize)
+                {
+                    Vector[] intersectionPoints = new Circle(e.Next.Next.GetVector(), e.NextEdge.GetLength())
+                        .GetIntersectionPointsWith(new Circle(e.Previous.GetVector(), desiredLen));
+
+                    if (intersectionPoints.Length != 0)
+                    {
+                        e.Next.FromVector(
+                            ChooseBestReplacementPoint(
+                                intersectionPoints, e.Next.GetVector(), e.Previous.GetVector()));
+                        return;
+                    }
+                }
+                e.Next.FromVector(previous + v);
+                if (e.NextEdge.EnactedRestriction != Edge.Restriction.None)
+                {
+                    enactionQueue.Push((e.NextEdge.RelatedEdge, !movePointForward));
+                }
             }
+        }
+        private Vector ChooseBestReplacementPoint(Vector[] possibleReplacements, Vector pointToReplace, Vector anotherPointOnEdge)
+        {
+            Vector bestReplacement = possibleReplacements[0];
+            float bestReplacementDot = Vector.DotProduct(
+                (possibleReplacements[0] - anotherPointOnEdge).Normalized,
+                (pointToReplace - anotherPointOnEdge).Normalized);
+            for (int i = 1; i < possibleReplacements.Length; i++)
+            {
+                float thisReplacementDot = Vector.DotProduct(
+                (possibleReplacements[i] - anotherPointOnEdge).Normalized,
+                (pointToReplace - anotherPointOnEdge).Normalized);
+                if(thisReplacementDot > bestReplacementDot)
+                {
+                    bestReplacement = possibleReplacements[i];
+                    bestReplacementDot = thisReplacementDot;
+                }
+            }
+            return bestReplacement;
         }
         private bool RotateToConnect(Edge e, float desiredLength, bool forward)
         {
