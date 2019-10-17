@@ -13,8 +13,8 @@ namespace PolygonEditor.Figures
         public PolyPoint First { get; private set; }
         public int PointCount { get; private set; }
         Color color;
-        private PolyPoint movedPoint = null;
-        private Edge movedEdge = null;
+        private List<bool> relationNumbersUsedList;
+        public static bool DrawLabels { get; set; } = true;
         public Polygon(Point[] points, Color color)
         {
             First = new PolyPoint(points[0].X, points[0].Y, this);
@@ -28,6 +28,7 @@ namespace PolygonEditor.Figures
             Edge.Link(p, First);
             this.color = color;
             PointCount = points.Length;
+            relationNumbersUsedList = new List<bool>();
         }
 
         public bool Remove(PolyPoint polyPoint)
@@ -43,25 +44,40 @@ namespace PolygonEditor.Figures
 
         public void MoveEdgeWithRestrictions(Edge edge, Vector delta)
         {
-            movedEdge = edge;
             edge.Previous.FromVector(edge.Previous.GetVector() + delta);
             edge.Next.FromVector(edge.Next.GetVector() + delta);
             if (edge.PreviousEdge.EnactedRestriction != Edge.Restriction.None)
                 EnactRestriction(edge.PreviousEdge.RelatedEdge, Direction.Forward);
             if (edge.NextEdge.EnactedRestriction != Edge.Restriction.None)
                 EnactRestriction(edge.NextEdge.RelatedEdge, Direction.Backwards);
-            movedEdge = null;
         }
 
         public void MoveVertexWithRestrictions(PolyPoint point, Vector delta)
         {
-            movedPoint = point;
             point.FromVector(point.GetVector() + delta);
             if (point.PreviousEdge.EnactedRestriction != Edge.Restriction.None)
                 EnactRestriction(point.PreviousEdge.RelatedEdge, Direction.Forward);
             if (point.NextEdge.EnactedRestriction != Edge.Restriction.None)
                 EnactRestriction(point.NextEdge.RelatedEdge, Direction.Backwards);
-            movedPoint = null;
+        }
+
+        public void ReclaimRelationNum(Edge edge)
+        {
+            relationNumbersUsedList[edge.RestrictionNum - 1] = false;
+        }
+
+        public int GetRelationNum()
+        {
+            for(int i = 0; i < relationNumbersUsedList.Count; i++)
+            {
+                if(!relationNumbersUsedList[i])
+                {
+                    relationNumbersUsedList[i] = true;
+                    return i+1;
+                }
+            }
+            relationNumbersUsedList.Add(true);
+            return relationNumbersUsedList.Count;
         }
 
         public void Draw(MemoryBitmap bitmap)
@@ -71,12 +87,19 @@ namespace PolygonEditor.Figures
             {
                 bitmap.DrawPoint((int)point.X, (int)point.Y, color, Helper.pointSize);
                 bitmap.DrawLine(point, point.Next, color);
-                if (point.NextEdge.EnactedRestriction == Edge.Restriction.SameSize)
-                {
-                    Helper.DrawRestrictionSameSize(point.NextEdge, bitmap);
-                }
                 point = point.Next;
             } while (point != First);
+            if(DrawLabels)
+            {
+                do
+                {
+                    if (point.NextEdge.EnactedRestriction != Edge.Restriction.None)
+                    {
+                        Helper.DrawRestrictionLabel(point.NextEdge, bitmap);
+                    }
+                    point = point.Next;
+                } while (point != First);
+            }
         }
 
 

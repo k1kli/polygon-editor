@@ -56,10 +56,10 @@ namespace PolygonEditor.Tools
         {
             if (firstEdge != null)
             {
-                Helper.DrawRestrictionSameSize(firstEdge, editorForm.MemoryBitmap, currentRestrictionColor);
+                Helper.DrawRestrictionLabel(firstEdge, editorForm.MemoryBitmap, currentRestrictionColor, Figures.Edge.Restriction.Perpendicular);
             }
             if (highlightedEdge != null)
-                Helper.DrawRestrictionSameSize(highlightedEdge, editorForm.MemoryBitmap, currentRestrictionColor);
+                Helper.DrawRestrictionLabel(highlightedEdge, editorForm.MemoryBitmap, currentRestrictionColor, Figures.Edge.Restriction.Perpendicular);
         }
     }
 }

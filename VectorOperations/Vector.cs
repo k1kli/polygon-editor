@@ -53,6 +53,10 @@ namespace PolygonEditor.VectorOperations
         {
             return new Vector() { X = v1.X - v2.X, Y = v1.Y - v2.Y };
         }
+        public static Vector operator -(Vector v)
+        {
+            return new Vector() { X = -v.X, Y = -v.Y };
+        }
         public static Vector operator *(Vector v, float factor)
         {
             return new Vector() { X = v.X*factor, Y = v.Y * factor };

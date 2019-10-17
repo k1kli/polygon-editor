@@ -44,7 +44,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.plikToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.widokToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.siatkaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.labelsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1 = new System.Windows.Forms.Panel();
             this.helpLabel = new System.Windows.Forms.Label();
             this.canvasPictureBox = new System.Windows.Forms.PictureBox();
@@ -233,17 +233,19 @@
             // widokToolStripMenuItem
             // 
             this.widokToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.siatkaToolStripMenuItem});
+            this.labelsToolStripMenuItem});
             this.widokToolStripMenuItem.Name = "widokToolStripMenuItem";
             this.widokToolStripMenuItem.Size = new System.Drawing.Size(66, 24);
             this.widokToolStripMenuItem.Text = "Widok";
             // 
-            // siatkaToolStripMenuItem
+            // labelsToolStripMenuItem
             // 
-            this.siatkaToolStripMenuItem.Name = "siatkaToolStripMenuItem";
-            this.siatkaToolStripMenuItem.Size = new System.Drawing.Size(132, 26);
-            this.siatkaToolStripMenuItem.Text = "Siatka";
-            this.siatkaToolStripMenuItem.Click += new System.EventHandler(this.SiatkaToolStripMenuItem_Click);
+            this.labelsToolStripMenuItem.Checked = true;
+            this.labelsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.labelsToolStripMenuItem.Name = "labelsToolStripMenuItem";
+            this.labelsToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.labelsToolStripMenuItem.Text = "Znaczniki relacji";
+            this.labelsToolStripMenuItem.Click += new System.EventHandler(this.labelsToolStripMenuItem_Click);
             // 
             // panel1
             // 
@@ -324,7 +326,7 @@
         private System.Windows.Forms.Label helpLabel;
         private System.Windows.Forms.PictureBox canvasPictureBox;
         private System.Windows.Forms.ToolStripMenuItem widokToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem siatkaToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem labelsToolStripMenuItem;
     }
 }
 

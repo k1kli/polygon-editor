@@ -17,7 +17,6 @@ namespace PolygonEditor
         public MemoryBitmap MemoryBitmap { get; }
         private bool mouseDown;
         private Tools.Tool currentTool;
-        private bool drawGrid;
         private Thread clearThread;
         private ThreadStart clearThreadStart;
         public List<Figures.Polygon> Polygons { get; } = new List<Figures.Polygon>();
@@ -102,6 +101,7 @@ namespace PolygonEditor
         private void CanvasPictureBox_Paint(object sender, PaintEventArgs e)
         {
             clearThread.Join();
+            MemoryBitmap.CreateGraphics();
             foreach (Figures.Polygon polygon in Polygons)
             {
                 polygon.Draw(MemoryBitmap);
@@ -109,19 +109,7 @@ namespace PolygonEditor
             currentTool.OnDrawGizmos();
             Bitmap b = MemoryBitmap.Bitmap;
             e.Graphics.DrawImageUnscaled(b, 0, 0);
-            if (drawGrid)
-            {
-                for (int x = 0; x < canvasPictureBox.Width; x += 50)
-                {
-                    e.Graphics.DrawLine(Pens.Black, x, 0, x, canvasPictureBox.Height);
-                    e.Graphics.DrawString(x.ToString(), Font, Brushes.Black, x + 10, 10);
-                }
-                for (int y = 0; y < canvasPictureBox.Height; y += 50)
-                {
-                    e.Graphics.DrawLine(Pens.Black, 0, y, canvasPictureBox.Width, y);
-                    e.Graphics.DrawString(y.ToString(), Font, Brushes.Black, 10, y + 10);
-                }
-            }
+            MemoryBitmap.DisposeGraphics();
             clearThread = new Thread(clearThreadStart);
             clearThread.Start();
         }
@@ -203,11 +191,6 @@ namespace PolygonEditor
             }
         }
 
-        private void SiatkaToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            drawGrid = siatkaToolStripMenuItem.Checked = !siatkaToolStripMenuItem.Checked;
-            Redraw();
-        }
 
         private void RelationPerpendicularRadioButton_CheckedChanged(object sender, EventArgs e)
         {
@@ -215,6 +198,13 @@ namespace PolygonEditor
             {
                 currentTool = new Tools.RestrictionPerpendicularTool(this);
             }
+        }
+
+        private void labelsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            labelsToolStripMenuItem.Checked = !labelsToolStripMenuItem.Checked;
+            Polygon.DrawLabels = labelsToolStripMenuItem.Checked;
+            Redraw();
         }
     }
 }
