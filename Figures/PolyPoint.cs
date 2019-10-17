@@ -29,6 +29,14 @@ namespace PolygonEditor.Figures
             Y = y;
             Parent = parent;
         }
+        public PolyPoint NextInDirection(Direction direction)
+        {
+            return direction == Direction.Backwards ? Previous : Next;
+        }
+        public Edge NextEdgeInDirection(Direction direction)
+        {
+            return direction == Direction.Backwards ? PreviousEdge : NextEdge;
+        }
 
         public bool Remove()
         {

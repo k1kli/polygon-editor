@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Figures\Direction.cs" />
     <Compile Include="MemoryBitmap.cs" />
     <Compile Include="Figures\Edge.cs" />
     <Compile Include="Figures\PolyPoint.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="Tools\CreatePolygonTool.cs" />
     <Compile Include="Tools\MovePointTool.cs" />
     <Compile Include="Tools\MovePolygonTool.cs" />
+    <Compile Include="Tools\RestrictionPerpendicularTool.cs" />
     <Compile Include="Tools\RestrictionSameSizeTool.cs" />
     <Compile Include="Tools\Tool.cs" />
     <Compile Include="Tools\VertexInMiddleTool.cs" />

@@ -32,6 +32,20 @@ namespace PolygonEditor.Figures
             parent.MoveEdgeWithRestrictions(this, delta);
         }
 
+        public PolyPoint NextInDirection(Direction direction)
+        {
+            return direction == Direction.Backwards ? Previous : Next;
+        }
+        public Edge NextEdgeInDirection(Direction direction)
+        {
+            return direction == Direction.Backwards ? PreviousEdge : NextEdge;
+        }
+
+        public VectorOperations.Vector GetVectorInDirection(Direction direction)
+        {
+            return NextInDirection(direction).GetVector() - NextInDirection(direction.Opposite()).GetVector();
+        }
+
 
         public static void SetRestriction(Restriction newRestriction, Edge e1, Edge e2, int restrictionData = 0)
         {
@@ -42,13 +56,12 @@ namespace PolygonEditor.Figures
             e2.EnactedRestriction = newRestriction;
             e1.RelatedEdge = e2;
             e2.RelatedEdge = e1;
-            e1.parent.EnactRestriction(e2);
+            e1.parent.EnactRestriction(e2, Direction.Forward);
             e1.RestrictionData = e2.RestrictionData = restrictionData;
         }
         public void ClearRestriction()
         {
             if (EnactedRestriction == Restriction.None) return;
-            parent.ClearRestriction(this);
             RelatedEdge.EnactedRestriction = EnactedRestriction = Restriction.None;
             RelatedEdge.RelatedEdge = null;
             RelatedEdge = null;
