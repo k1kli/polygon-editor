@@ -13,15 +13,13 @@ namespace PolygonEditor.Figures
         public PolyPoint First { get; private set; }
         public int PointCount { get; private set; }
         Color color;
-        private PolyPoint movedPoint = null;
-        private Edge movedEdge = null;
         public Polygon(Point[] points, Color color)
         {
             First = new PolyPoint(points[0].X, points[0].Y, this);
             PolyPoint p = First;
-            for (int i = 1; i < points.Length; i++)
+            for(int i = 1; i < points.Length;i++)
             {
-
+                
                 Edge.Link(p, new PolyPoint(points[i].X, points[i].Y, this));
                 p = p.Next;
             }
@@ -43,25 +41,21 @@ namespace PolygonEditor.Figures
 
         public void MoveEdgeWithRestrictions(Edge edge, Vector delta)
         {
-            movedEdge = edge;
             edge.Previous.FromVector(edge.Previous.GetVector() + delta);
             edge.Next.FromVector(edge.Next.GetVector() + delta);
             if (edge.PreviousEdge.EnactedRestriction != Edge.Restriction.None)
-                EnactRestriction(edge.PreviousEdge.RelatedEdge, Direction.Forward);
+                EnactRestriction(edge.PreviousEdge.RelatedEdge);
             if (edge.NextEdge.EnactedRestriction != Edge.Restriction.None)
-                EnactRestriction(edge.NextEdge.RelatedEdge, Direction.Backwards);
-            movedEdge = null;
+                EnactRestriction(edge.NextEdge.RelatedEdge);
         }
 
         public void MoveVertexWithRestrictions(PolyPoint point, Vector delta)
         {
-            movedPoint = point;
             point.FromVector(point.GetVector() + delta);
-            if (point.PreviousEdge.EnactedRestriction != Edge.Restriction.None)
-                EnactRestriction(point.PreviousEdge.RelatedEdge, Direction.Forward);
+            if(point.PreviousEdge.EnactedRestriction != Edge.Restriction.None)
+                EnactRestriction(point.PreviousEdge.RelatedEdge);
             if (point.NextEdge.EnactedRestriction != Edge.Restriction.None)
-                EnactRestriction(point.NextEdge.RelatedEdge, Direction.Backwards);
-            movedPoint = null;
+                EnactRestriction(point.NextEdge.RelatedEdge);
         }
 
         public void Draw(MemoryBitmap bitmap)
@@ -71,7 +65,7 @@ namespace PolygonEditor.Figures
             {
                 bitmap.DrawPoint((int)point.X, (int)point.Y, color, Helper.pointSize);
                 bitmap.DrawLine(point, point.Next, color);
-                if (point.NextEdge.EnactedRestriction == Edge.Restriction.SameSize)
+                if(point.NextEdge.EnactedRestriction == Edge.Restriction.SameSize)
                 {
                     Helper.DrawRestrictionSameSize(point.NextEdge, bitmap);
                 }
@@ -84,15 +78,15 @@ namespace PolygonEditor.Figures
         public (int dist, PolyPoint p) TrySelectPoint(int x, int y, int distanceLimit)
         {
             PolyPoint res = null;
-            PolyPoint point = First;
+            PolyPoint point = First ;
             int minDist = Int32.MaxValue;
             do
             {
                 int xDist = Math.Abs((int)point.X - x);
                 int yDist = Math.Abs((int)point.Y - y);
-                if (xDist + yDist < distanceLimit)
+                if ( xDist + yDist  < distanceLimit)
                 {
-                    if (res == null || xDist + yDist < minDist)
+                    if(res == null || xDist + yDist < minDist)
                     {
                         res = point;
                         minDist = xDist + yDist;
@@ -124,14 +118,14 @@ namespace PolygonEditor.Figures
                 }
                 edge = edge.Next.NextEdge;
             } while (edge != firstEdge);
-            if (res != null) distDifference = (int)Math.Sqrt(distDifference);
+            if(res != null) distDifference = (int)Math.Sqrt(distDifference);
             return (distDifference, res);
         }
 
         public void AddPointBetween(PolyPoint p1, PolyPoint p2)
         {
             if (p1.Parent != this || p2.Parent != this) throw new Exception($"This polygon is not the owner of {p1}, {p2}");
-            if (p2.Next == p1)
+            if(p2.Next == p1)
             {
                 PolyPoint buff = p2;
                 p2 = p1;
@@ -148,153 +142,172 @@ namespace PolygonEditor.Figures
         {
             //https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
             Vector p1 = e.Previous.GetVector(), p2 = e.Next.GetVector();
-            float mgnSquared = (p2 - p1).MagnitudeSqr;
-            if (Math.Abs(mgnSquared) < float.Epsilon) return (point - p1).MagnitudeSqr;
-            float t = Math.Max(0, Math.Min(1, Vector.DotProduct(point - p1, p2 - p1) / mgnSquared));
+            float mgnSquared = (p2-p1).MagnitudeSqr;
+            if (Math.Abs(mgnSquared) < float.Epsilon) return (point-p1).MagnitudeSqr;
+            float t = Math.Max(0, Math.Min(1, Vector.DotProduct(point-p1, p2-p1) / mgnSquared));
             Vector projection = p1 + t * (p2 - p1);
-            return (projection - point).MagnitudeSqr;
+            return (projection-point).MagnitudeSqr;
         }
-        private readonly Stack<(Edge e, Direction directionOfApplying)> enactionQueue = new Stack<(Edge, Direction)>();
-        public void EnactRestriction(Edge e, Direction directionOfApplying)
+        public void EnactRestriction(Edge e)
         {
-            enactionQueue.Push((e, directionOfApplying));
-            while (enactionQueue.Count > 0)
-            {
-                EnactRestrictions();
-            }
-        }
-        private void EnactRestrictions()
-        {
-            var (e, directionOfApplying) = enactionQueue.Pop();
-            if(e.EnactedRestriction == Edge.Restriction.SameSize)
-            {
-                EnactRestrictionSameSize(e, directionOfApplying);
-            }
-            else if(e.EnactedRestriction == Edge.Restriction.Perpendicular)
-            {
-                EnactRestrictionPerpendicular(e, directionOfApplying);
-            }
-        }
-
-
-        private void EnactRestrictionSameSize(Edge e, Direction directionOfApplying)
-        {
-            if (!IsSameSizeEnactionNeeded(e)) return;
-            if (e.NextEdgeInDirection(directionOfApplying).EnactedRestriction == Edge.Restriction.SameSize)
-            {
-                if (TryEnactNeighborsSameSize(e, directionOfApplying)) return;
-            }
-            EnactRestrictionSameSizeBreakingNeighbor(e, directionOfApplying);
-        }
-        private bool IsSameSizeEnactionNeeded(Edge e)
-        {
+            //e is the edge to be changed to comform to restriction
             float desiredLen = e.RelatedEdge.GetLength();
-            return Math.Abs(e.GetLength() - desiredLen) >= 1;
-        }
-        private bool TryEnactNeighborsSameSize(Edge e, Direction neighborDirection)
-        {
-            Vector[] intersectionPoints =
-                new Circle(
-                    e.NextInDirection(neighborDirection).NextInDirection(neighborDirection).GetVector(),
-                    e.NextEdgeInDirection(neighborDirection).GetLength())
-                .GetIntersectionPointsWith(
-                    new Circle(e.NextInDirection(neighborDirection.Opposite()).GetVector(), e.RelatedEdge.GetLength()));
-
-            if (intersectionPoints.Length != 0)
+            Vector previous = e.Previous.GetVector();
+            Vector next = e.Next.GetVector();
+            if (Math.Abs((previous - next).MagnitudeSqr - desiredLen * desiredLen) < 1) return;
+            if (e.PreviousEdge.EnactedRestriction==Edge.Restriction.None)
             {
-                e.NextInDirection(neighborDirection).FromVector(
-                    ChooseBestReplacementPoint(
-                        intersectionPoints,
-                        e.NextInDirection(neighborDirection).GetVector(),
-                        e.NextInDirection(neighborDirection.Opposite()).GetVector()));
+                Vector v = previous - next;
+                v = v * desiredLen / v.Magnitude;
+                e.Previous.FromVector(next + v);
+            }
+            else if (e.NextEdge.EnactedRestriction == Edge.Restriction.None)
+            {
+                Vector v = next - previous;
+                v = v * desiredLen / v.Magnitude;
+                e.Next.FromVector(previous + v);
+            }
+            else if (e.NextEdge == e.RelatedEdge)
+            {
+                //RotateToConnect(e, desiredLen, true);
+                if (desiredLen * 2 < (previous - e.RelatedEdge.Next.GetVector()).Magnitude)
+                {
+                    e.Next.FromVector((previous + e.RelatedEdge.Next.GetVector()) / 2);
+                }
+                else
+                {
+                    Vector[] possibleConnectionPoints = new Circle(previous, desiredLen)
+                        .GetIntersectionPointsWith(new Circle(e.RelatedEdge.Next.GetVector(), desiredLen));
+
+                    if (possibleConnectionPoints.Length == 1 ||
+                        Vector.DotProduct((possibleConnectionPoints[0] - previous).Normalized, (next - previous).Normalized) >
+                        Vector.DotProduct((possibleConnectionPoints[1] - previous).Normalized, (next - previous).Normalized))
+                        e.Next.FromVector(possibleConnectionPoints[0]);
+                    else
+                    {
+                        e.Next.FromVector(possibleConnectionPoints[1]);
+                    }
+                }
+            }
+            else if (e.PreviousEdge == e.RelatedEdge)
+            {
+                //RotateToConnect(e, desiredLen, false);
+                if (desiredLen * 2 < (next - e.RelatedEdge.Previous.GetVector()).Magnitude)
+                {
+                    e.Previous.FromVector((next + e.RelatedEdge.Previous.GetVector()) / 2);
+                }
+                else
+                {
+                    Vector[] possibleConnectionPoints = new Circle(next, desiredLen)
+                        .GetIntersectionPointsWith(new Circle(e.RelatedEdge.Previous.GetVector(), desiredLen));
+
+                    if (possibleConnectionPoints.Length == 1 ||
+                        Vector.DotProduct((possibleConnectionPoints[0] - next).Normalized, (previous - next).Normalized) >
+                        Vector.DotProduct((possibleConnectionPoints[1] - next).Normalized, (previous - next).Normalized))
+                        e.Previous.FromVector(possibleConnectionPoints[0]);
+                    else
+                    {
+                        e.Previous.FromVector(possibleConnectionPoints[1]);
+                    }
+                }
+            }
+            else
+            {
+                if (!RotateToConnect(e, desiredLen, true))
+                    RotateToConnect(e, desiredLen, false);
+            }
+        }
+        private bool RotateToConnect(Edge e, float desiredLength, bool forward)
+        {
+            Branch branch = GetBranchFromRelatedEdge(e, forward);
+            (Vector edgeStart, Vector edgeEnd) = GetEdgeStartEnd(e, !forward);
+            Vector? newConnectionPoint
+                = branch.ConnectionPointWith(edgeStart, edgeStart + (edgeEnd - edgeStart).Normalized * desiredLength);
+            if (newConnectionPoint.HasValue)
+            {
+                branch.RotateToEndAt(newConnectionPoint.Value);
                 return true;
             }
             return false;
         }
-        private void EnactRestrictionSameSizeBreakingNeighbor(Edge e, Direction directionOfApplying)
+        private Branch GetBranchFromRelatedEdge(Edge e, bool forward)
         {
-            float desiredLen = e.RelatedEdge.GetLength();
-            Vector previous = e.NextInDirection(directionOfApplying.Opposite()).GetVector();
-            Vector v = e.GetVectorInDirection(directionOfApplying);
-            v = v * desiredLen / v.Magnitude;
-            e.NextInDirection(directionOfApplying).FromVector(previous + v);
-            InvalidateNeighborsRelation(e, directionOfApplying);
+            if (forward) return new Branch(e.RelatedEdge.Next, e.Previous, true);
+            return new Branch(e.RelatedEdge.Previous, e.Next, false);
         }
-        private void EnactRestrictionPerpendicular(Edge e, Direction directionOfApplying)
+        private (Vector edgeStart, Vector edgeEnd) GetEdgeStartEnd(Edge e, bool forward)
         {
-            if (!IsPerpendicularEnactionNeeded(e)) return;
-            if(e.NextEdgeInDirection(directionOfApplying).EnactedRestriction == Edge.Restriction.Perpendicular)
+            if (forward) return (e.Previous.GetVector(), e.Next.GetVector());
+            return (e.Next.GetVector(), e.Previous.GetVector());
+        }
+        public void ClearRestriction(Edge e)
+        {
+        }
+
+        private class Branch
+        {
+            public Branch(PolyPoint start, PolyPoint end, bool forward)
             {
-                if (TryEnactNeighborsPerpendicular(e, directionOfApplying)) return;
+                Start = start;
+                End = end;
+                Forward = forward;
             }
-            EnactRestrictionPerpendicularBreakingNeighbor(e, directionOfApplying);
-        }
 
-        private void EnactRestrictionPerpendicularBreakingNeighbor(Edge e, Direction directionOfApplying)
-        {
-            Vector myEdgeDirection = e.RelatedEdge.GetVectorInDirection(Direction.Forward).GetPerpendicular();
-            myEdgeDirection = ChooseBestReplacementPoint(
-                new Vector[] {
-                e.NextInDirection(directionOfApplying.Opposite()).GetVector() + myEdgeDirection,
-                e.NextInDirection(directionOfApplying.Opposite()).GetVector() - myEdgeDirection
-                },
-                e.NextInDirection(directionOfApplying).GetVector(),
-                e.NextInDirection(directionOfApplying.Opposite()).GetVector()
-            ) - e.NextInDirection(directionOfApplying.Opposite()).GetVector();
-            myEdgeDirection *= e.GetLength() / myEdgeDirection.Magnitude;
-            e.NextInDirection(directionOfApplying)
-                .FromVector(myEdgeDirection + e.NextInDirection(directionOfApplying.Opposite()).GetVector());
-            InvalidateNeighborsRelation(e, directionOfApplying);
-        }
+            public PolyPoint Start { get; set; }
+            public PolyPoint End { get; set; }
+            public bool Forward { get; set; }
 
-        private bool TryEnactNeighborsPerpendicular(Edge e, Direction directionOfApplying)
-        {
-            Vector myStart = e.NextInDirection(directionOfApplying.Opposite()).GetVector();
-            Vector neighborStart = e.NextInDirection(directionOfApplying).NextInDirection(directionOfApplying).GetVector();
-            Vector myEdgeDirection = e.RelatedEdge.GetVectorInDirection(Direction.Forward).GetPerpendicular();
-            Vector neighborEdgeDirection = e.NextEdgeInDirection(directionOfApplying).GetVectorInDirection(Direction.Forward);
-            Vector? intersectionPoint = Vector.FindConnectionPoint(
-                myStart, myStart + myEdgeDirection,
-                neighborStart, neighborStart + neighborEdgeDirection);
-            if (intersectionPoint == null) return false;
-            else e.NextInDirection(directionOfApplying).FromVector(intersectionPoint.Value);
-            return true;
-        }
-
-        private bool IsPerpendicularEnactionNeeded(Edge e)
-        {
-            return Math.Abs(Vector.DotProduct(
-                e.GetVectorInDirection(Direction.Forward),
-                e.RelatedEdge.GetVectorInDirection(Direction.Forward))) > 0.1f;
-        }
-        private void InvalidateNeighborsRelation(Edge e, Direction neighborDirection)
-        {
-            if (e.NextEdgeInDirection(neighborDirection).EnactedRestriction != Edge.Restriction.None)
+            private PolyPoint NextOnBranch(PolyPoint point)
             {
-                enactionQueue.Push((e.NextEdgeInDirection(neighborDirection).RelatedEdge, neighborDirection.Opposite()));
+                return Forward ? point.Next : point.Previous;
             }
-        }
-        private Vector ChooseBestReplacementPoint(Vector[] possibleReplacements, Vector pointToReplace, Vector anotherPointOnEdge)
-        {
-            Vector bestReplacement = possibleReplacements[0];
-            float bestReplacementDot = Vector.DotProduct(
-                (possibleReplacements[0] - anotherPointOnEdge).Normalized,
-                (pointToReplace - anotherPointOnEdge).Normalized);
-            for (int i = 1; i < possibleReplacements.Length; i++)
+            public float Length => (Start.GetVector() - End.GetVector()).Magnitude;
+            public Vector? ConnectionPointWith(Vector edgeStart, Vector edgeEnd)
             {
-                float thisReplacementDot = Vector.DotProduct(
-                (possibleReplacements[i] - anotherPointOnEdge).Normalized,
-                (pointToReplace - anotherPointOnEdge).Normalized);
-                if (thisReplacementDot > bestReplacementDot)
+                if (edgeStart == Start.GetVector()) return End.GetVector();
+                Vector[] intersectionPoints = GetAllPossibleConnectionPointsWith(edgeStart, edgeEnd);
+                return GetBestConnectionPoint(intersectionPoints, edgeStart, edgeEnd);
+            }
+
+            public void RotateToEndAt(Vector newEnd)
+            {
+                Vector startVector = Start.GetVector();
+                Vector endVector = End.GetVector();
+                float rotation = (newEnd-startVector).ToPolar().angle - (endVector-startVector).ToPolar().angle;
+                PolyPoint point = NextOnBranch(Start);
+                while(point != NextOnBranch(End))
                 {
-                    bestReplacement = possibleReplacements[i];
-                    bestReplacementDot = thisReplacementDot;
+                    point.FromVector(point.GetVector().RotateClockwiseAround(startVector, rotation));
+                    point = NextOnBranch(point);
                 }
             }
-            return bestReplacement;
-        }
-        
 
-        
+            private Vector[] GetAllPossibleConnectionPointsWith(Vector edgeStart, Vector edgeEnd)
+            {
+                //edge and branch will be able to connect at intersection points of circles created by rotating them around their start point
+                    return new Circle(Start.GetVector(), Length)
+                    .GetIntersectionPointsWith(
+                        new Circle(edgeStart, (edgeEnd - edgeStart).Magnitude)
+                        );
+            }
+
+            private Vector? GetBestConnectionPoint(Vector[] allConnectionPoints, Vector edgeStart, Vector edgeEnd)
+            {
+                //circles don't intersect
+                if (allConnectionPoints.Length == 0)
+                    return null;
+                //return only intersection point
+                if (allConnectionPoints.Length == 1)
+                    return allConnectionPoints[0];
+                //return intersection point that makes new edge more similar to the older edge
+                if (Vector.DotProduct(allConnectionPoints[0] - edgeStart, edgeEnd - edgeStart) >
+                    Vector.DotProduct(allConnectionPoints[1] - edgeStart, edgeEnd - edgeStart))
+                    return allConnectionPoints[0];
+                else
+                {
+                    return allConnectionPoints[1];
+                }
+            }
+        }
     }
 }

@@ -9,12 +9,13 @@ namespace PolygonEditor.Tools
 {
     class RestrictionSameSizeTool : Tool
     {
-        Figures.Edge firstEdge = null;
+        Figures.Edge firstEdge = null, secondEdge = null;
         Figures.Edge highlightedEdge = null;
         public RestrictionSameSizeTool(EditorForm form) : base(form)
         {
             currentRestrictionColor = Helper.RandomColor();
         }
+        int curX, curY;
         Color currentRestrictionColor;
         public override void MouseDown(int xPos, int yPos)
         {
@@ -45,6 +46,8 @@ namespace PolygonEditor.Tools
         }
         public override void MouseMove(int xPos, int yPos)
         {
+            curX = xPos;
+            curY = yPos;
             Figures.Edge newHighlightedEdge = editorForm.SelectEdge(xPos, yPos);
             if (newHighlightedEdge == highlightedEdge) return;
             if (firstEdge != null && newHighlightedEdge != null && newHighlightedEdge.parent != firstEdge.parent) return;
