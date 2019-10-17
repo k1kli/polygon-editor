@@ -20,6 +20,31 @@ namespace PolygonEditor.VectorOperations
             (float)Math.Sqrt(MagnitudeSqr);
         public float MagnitudeSqr => X * X + Y * Y;
 
+        public Vector GetPerpendicular()
+        {
+            return new Vector(-this.Y, this.X);
+        }
+
+        public static Vector? FindConnectionPoint(Vector v1Start, Vector v1End, Vector v2Start, Vector v2End)
+        {
+            var (A, B, C) = FindEquationOfLinePassingThrough(v1Start, v1End);
+            var (D, E, F) = FindEquationOfLinePassingThrough(v2Start, v2End);
+            if (Math.Abs(A) <= 0.01)
+            {
+                return new Vector((E * C + F * B) / (-D * B), C/B);
+            }
+            if (Math.Abs(A * E - B * D) <= 0.01) return null;
+            Vector res = new Vector();
+            res.Y = (D * C - F * A) / (E * A - B * D);
+            res.X = (B * res.Y + C) / (-A);
+            return res;
+        }
+
+        public static (float A, float B, float C) FindEquationOfLinePassingThrough(Vector v1, Vector v2)
+        {
+            return (v1.Y - v2.Y, v2.X - v1.X, v1.X * v2.Y - v2.X * v1.Y);
+        }
+
         public static Vector operator+(Vector v1, Vector v2)
         {
             return new Vector() { X = v1.X + v2.X, Y = v1.Y + v2.Y };

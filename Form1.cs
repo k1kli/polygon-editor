@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,6 +18,8 @@ namespace PolygonEditor
         private bool mouseDown;
         private Tools.Tool currentTool;
         private bool drawGrid;
+        private Thread clearThread;
+        private ThreadStart clearThreadStart;
         public List<Figures.Polygon> Polygons { get; } = new List<Figures.Polygon>();
         private const int distanceLimit = 30;
         public EditorForm()
@@ -26,6 +29,10 @@ namespace PolygonEditor
 
             Polygons.Add(new Figures.Polygon(new Point[]{ new Point(20, 30), new Point(55, 100), new Point(150, 70) }, Color.ForestGreen));
             currentTool = new Tools.MovePointTool(this);
+            clearThreadStart = new ThreadStart(MemoryBitmap.Clear);
+            clearThread = new Thread(clearThreadStart);
+            clearThread.Start();
+
             Redraw();
         }
 
@@ -37,12 +44,6 @@ namespace PolygonEditor
 
         public void Redraw()
         {
-            MemoryBitmap.Clear();
-            foreach(Figures.Polygon polygon in Polygons)
-            {
-                polygon.Draw(MemoryBitmap);
-            }
-            currentTool.OnDrawGizmos();
             canvasPictureBox.Invalidate();
         }
 
@@ -100,6 +101,12 @@ namespace PolygonEditor
 
         private void CanvasPictureBox_Paint(object sender, PaintEventArgs e)
         {
+            clearThread.Join();
+            foreach (Figures.Polygon polygon in Polygons)
+            {
+                polygon.Draw(MemoryBitmap);
+            }
+            currentTool.OnDrawGizmos();
             Bitmap b = MemoryBitmap.Bitmap;
             e.Graphics.DrawImageUnscaled(b, 0, 0);
             if (drawGrid)
@@ -115,6 +122,8 @@ namespace PolygonEditor
                     e.Graphics.DrawString(y.ToString(), Font, Brushes.Black, 10, y + 10);
                 }
             }
+            clearThread = new Thread(clearThreadStart);
+            clearThread.Start();
         }
 
         private void CanvasPictureBox_MouseDown(object sender, MouseEventArgs e)
@@ -198,6 +207,14 @@ namespace PolygonEditor
         {
             drawGrid = siatkaToolStripMenuItem.Checked = !siatkaToolStripMenuItem.Checked;
             Redraw();
+        }
+
+        private void RelationPerpendicularRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (relationPerpendicularRadioButton.Checked)
+            {
+                currentTool = new Tools.RestrictionPerpendicularTool(this);
+            }
         }
     }
 }

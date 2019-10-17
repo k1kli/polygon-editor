@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 namespace PolygonEditor.Tools
 {
-    class RestrictionSameSizeTool : Tool
+    class RestrictionPerpendicularTool:Tool
     {
         Figures.Edge firstEdge = null;
         Figures.Edge highlightedEdge = null;
-        public RestrictionSameSizeTool(EditorForm form) : base(form)
+        public RestrictionPerpendicularTool(EditorForm form) : base(form)
         {
             currentRestrictionColor = Helper.RandomColor();
         }
         Color currentRestrictionColor;
         public override void MouseDown(int xPos, int yPos)
         {
-            if(firstEdge == null && highlightedEdge != null)
+            if (firstEdge == null && highlightedEdge != null)
             {
                 firstEdge = highlightedEdge;
             }
@@ -26,10 +26,10 @@ namespace PolygonEditor.Tools
             {
                 Figures.Edge secondEdge = highlightedEdge;
                 if (secondEdge is null || secondEdge == firstEdge) return;
-                if (firstEdge.RelatedEdge == secondEdge && firstEdge.EnactedRestriction == Figures.Edge.Restriction.SameSize)
+                if (firstEdge.RelatedEdge == secondEdge && firstEdge.EnactedRestriction == Figures.Edge.Restriction.Perpendicular)
                     firstEdge.ClearRestriction();
                 else
-                    Figures.Edge.SetRestriction(Figures.Edge.Restriction.SameSize, firstEdge, secondEdge, currentRestrictionColor.ToArgb());
+                    Figures.Edge.SetRestriction(Figures.Edge.Restriction.Perpendicular, firstEdge, secondEdge, currentRestrictionColor.ToArgb());
                 editorForm.Redraw();
                 firstEdge = null;
                 currentRestrictionColor = Helper.RandomColor();
@@ -54,11 +54,11 @@ namespace PolygonEditor.Tools
 
         public override void OnDrawGizmos()
         {
-            if(firstEdge != null)
+            if (firstEdge != null)
             {
                 Helper.DrawRestrictionSameSize(firstEdge, editorForm.MemoryBitmap, currentRestrictionColor);
             }
-            if(highlightedEdge != null)
+            if (highlightedEdge != null)
                 Helper.DrawRestrictionSameSize(highlightedEdge, editorForm.MemoryBitmap, currentRestrictionColor);
         }
     }
