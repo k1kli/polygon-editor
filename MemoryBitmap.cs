@@ -17,11 +17,10 @@ namespace PolygonEditor
         public bool Disposed { get; private set; }
         public int Width { get; }
         public int Height { get; }
-        private int[] bitmap;
         protected GCHandle BitsHandle { get; private set; }
+        private Graphics g;
         public MemoryBitmap(int xSize, int ySize)
         {
-            bitmap = new int[xSize * ySize];
             Width = xSize;
             Height = ySize;
             Bits = new Int32[Width * Height];
@@ -64,6 +63,18 @@ namespace PolygonEditor
             Disposed = true;
             Bitmap.Dispose();
             BitsHandle.Free();
+        }
+        public void CreateGraphics()
+        {
+            g = Graphics.FromImage(Bitmap);
+        }
+        public void DisposeGraphics()
+        {
+            g.Dispose();
+        }
+        public Graphics GetGraphics()
+        {
+            return g;
         }
 
         public void DrawPoint(int posX, int posY, Color color, int size)

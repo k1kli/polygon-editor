@@ -16,6 +16,7 @@ namespace PolygonEditor.Figures
         public Restriction EnactedRestriction { get; private set; }
         public Edge RelatedEdge { get; private set; }
         public int RestrictionData { get; set; }
+        public int RestrictionNum { get; private set; }
 
         private Edge(Polygon p)
         {
@@ -45,6 +46,10 @@ namespace PolygonEditor.Figures
         {
             return NextInDirection(direction).GetVector() - NextInDirection(direction.Opposite()).GetVector();
         }
+        public (float A, float B, float C) FindEquationOfLinePassingThrough()
+        {
+            return VectorOperations.Vector.FindEquationOfLinePassingThrough(Previous.GetVector(), Next.GetVector());
+        }
 
 
         public static void SetRestriction(Restriction newRestriction, Edge e1, Edge e2, int restrictionData = 0)
@@ -56,12 +61,16 @@ namespace PolygonEditor.Figures
             e2.EnactedRestriction = newRestriction;
             e1.RelatedEdge = e2;
             e2.RelatedEdge = e1;
+            e1.RestrictionNum = e2.RestrictionNum = e1.parent.GetRelationNum();
             e1.parent.EnactRestriction(e2, Direction.Forward);
             e1.RestrictionData = e2.RestrictionData = restrictionData;
         }
         public void ClearRestriction()
         {
             if (EnactedRestriction == Restriction.None) return;
+
+            parent.ReclaimRelationNum(this);
+            RelatedEdge.RestrictionNum = RestrictionNum = 0;
             RelatedEdge.EnactedRestriction = EnactedRestriction = Restriction.None;
             RelatedEdge.RelatedEdge = null;
             RelatedEdge = null;
