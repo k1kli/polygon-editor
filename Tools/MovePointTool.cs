@@ -10,7 +10,7 @@ namespace PolygonEditor.Tools
     public class MovePointTool : Tool
     {
         static readonly string help =
-            "Przesuwanie wierzchołka.\nNaciśnij i przytrzymaj lewy przycisk myszy nad wybranym wierzchołkiem i przeciągnij go" +
+            "Przesuwanie wierzchołka.\n\nNaciśnij i przytrzymaj lewy przycisk myszy nad wybranym wierzchołkiem i przeciągnij go" +
                 " w wybrane miejsce.";
         public MovePointTool(EditorForm editorForm) : base(editorForm) { editorForm.Help(help); }
         private PolyPoint point;

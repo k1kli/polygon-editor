@@ -10,7 +10,7 @@ namespace PolygonEditor.Tools
     class DeleteVertexTool : Tool
     {
         static readonly string help =
-            "Usuwanie wierzchołka.\nNaciśnij na wierzchołek który chcesz usunąć.\nWielokąt musi mieć co najmniej 3 wierzchołki.";
+            "Usuwanie wierzchołka.\n\nNaciśnij na wierzchołek który chcesz usunąć.\nWielokąt musi mieć co najmniej 3 wierzchołki.";
         public DeleteVertexTool(EditorForm form) : base(form) { editorForm.Help(help); }
         public override void MouseDown(int xPos, int yPos)
         {

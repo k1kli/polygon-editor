@@ -10,9 +10,9 @@ namespace PolygonEditor.Tools
     class CreatePolygonTool : Tool
     {
         static readonly string[] help = {
-            "Tworzenie wielokąta.\nZaznacz pierwszy punkt wielokąta.",
-            "Tworzenie wielokąta.\nZaznacz więcej punktów wielokąta.",
-            "Tworzenie wielokąta.\nZaznacz więcej punktów wielokąta. Aby zakończyć rysowanie wielokąta kliknij punkt początkowy",
+            "Tworzenie wielokąta.\n\nZaznacz pierwszy punkt wielokąta.",
+            "Tworzenie wielokąta.\n\nZaznacz więcej punktów wielokąta.",
+            "Tworzenie wielokąta.\n\nZaznacz więcej punktów wielokąta. Aby zakończyć rysowanie wielokąta kliknij punkt początkowy",
         };
         public CreatePolygonTool(EditorForm editorForm) : base(editorForm)
         {

@@ -11,9 +11,21 @@ namespace PolygonEditor.Tools
     {
         Figures.Edge firstEdge = null;
         Figures.Edge highlightedEdge = null;
+        static readonly string[] help = {
+            "Dodawanie relacji prostopadłości." +
+                "\n\nZaznacz pierwszą z krawędzi która ma być w relacji." +
+                "\nDruga krawędź zostanie ustawiona tak aby była prostopadła z pierwszą." +
+                "\nKrawędzie pozostaną prostopadłe nawet przy modyfikacji wielokąta",
+            "Dodawanie relacji równej długości." +
+                "\n\nZaznacz drugą z krawędzi która ma być w relacji." +
+                "\nDostosuje ona swoją długość do pierwszej krawędzi" +
+                "\nDruga krawędź zostanie ustawiona tak aby była prostopadła z pierwszą." +
+                "\nKrawędzie pozostaną prostopadłe nawet przy modyfikacji wielokąta"
+        };
         public RestrictionPerpendicularTool(EditorForm form) : base(form)
         {
             currentRestrictionColor = Helper.RandomColor();
+            editorForm.Help(help[0]);
         }
         Color currentRestrictionColor;
         public override void MouseDown(int xPos, int yPos)
@@ -21,6 +33,7 @@ namespace PolygonEditor.Tools
             if (firstEdge == null && highlightedEdge != null)
             {
                 firstEdge = highlightedEdge;
+                editorForm.Help(help[1]);
             }
             else
             {
@@ -33,6 +46,7 @@ namespace PolygonEditor.Tools
                 editorForm.Redraw();
                 firstEdge = null;
                 currentRestrictionColor = Helper.RandomColor();
+                editorForm.Help(help[0]);
             }
         }
 
@@ -56,10 +70,12 @@ namespace PolygonEditor.Tools
         {
             if (firstEdge != null)
             {
-                Helper.DrawRestrictionLabel(firstEdge, editorForm.MemoryBitmap, currentRestrictionColor, Figures.Edge.Restriction.Perpendicular);
+                Helper.DrawRestrictionLabel(firstEdge, editorForm.MemoryBitmap,
+                    currentRestrictionColor, Figures.Edge.Restriction.Perpendicular);
             }
             if (highlightedEdge != null)
-                Helper.DrawRestrictionLabel(highlightedEdge, editorForm.MemoryBitmap, currentRestrictionColor, Figures.Edge.Restriction.Perpendicular);
+                Helper.DrawRestrictionLabel(highlightedEdge, editorForm.MemoryBitmap,
+                    currentRestrictionColor, Figures.Edge.Restriction.Perpendicular);
         }
     }
 }

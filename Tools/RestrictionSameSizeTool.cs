@@ -11,9 +11,20 @@ namespace PolygonEditor.Tools
     {
         Figures.Edge firstEdge = null;
         Figures.Edge highlightedEdge = null;
+        static readonly string[] help = {
+            "Dodawanie relacji równej długości." +
+                "\n\nZaznacz pierwszą z krawędzi która ma być w relacji." +
+                "\nDruga krawędź dostosuje do niej swoją długość" +
+                "\nKrawędzie pozostaną równej długości nawet przy modyfikacji wielokąta",
+            "Dodawanie relacji równej długości." +
+                "\n\nZaznacz drugą z krawędzi która ma być w relacji." +
+                "\nDostosuje ona swoją długość do pierwszej krawędzi" +
+                "\nKrawędzie pozostaną równej długości nawet przy modyfikacji wielokąta"
+        };
         public RestrictionSameSizeTool(EditorForm form) : base(form)
         {
             currentRestrictionColor = Helper.RandomColor();
+            editorForm.Help(help[0]);
         }
         Color currentRestrictionColor;
         public override void MouseDown(int xPos, int yPos)
@@ -21,6 +32,7 @@ namespace PolygonEditor.Tools
             if(firstEdge == null && highlightedEdge != null)
             {
                 firstEdge = highlightedEdge;
+                editorForm.Help(help[1]);
             }
             else
             {
@@ -33,6 +45,7 @@ namespace PolygonEditor.Tools
                 editorForm.Redraw();
                 firstEdge = null;
                 currentRestrictionColor = Helper.RandomColor();
+                editorForm.Help(help[0]);
             }
         }
 
@@ -56,10 +69,12 @@ namespace PolygonEditor.Tools
         {
             if(firstEdge != null)
             {
-                Helper.DrawRestrictionLabel(firstEdge, editorForm.MemoryBitmap, currentRestrictionColor, Figures.Edge.Restriction.SameSize);
+                Helper.DrawRestrictionLabel(firstEdge, editorForm.MemoryBitmap,
+                    currentRestrictionColor, Figures.Edge.Restriction.SameSize);
             }
             if(highlightedEdge != null)
-                Helper.DrawRestrictionLabel(highlightedEdge, editorForm.MemoryBitmap, currentRestrictionColor, Figures.Edge.Restriction.SameSize);
+                Helper.DrawRestrictionLabel(highlightedEdge, editorForm.MemoryBitmap,
+                    currentRestrictionColor, Figures.Edge.Restriction.SameSize);
         }
     }
 }

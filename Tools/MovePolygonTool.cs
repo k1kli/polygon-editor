@@ -10,7 +10,7 @@ namespace PolygonEditor.Tools
     class MovePolygonTool : Tool
     {
         static readonly string help =
-            "Przesuwanie wielokąta.\nNaciśnij i przytrzymaj lewy przycisk myszy nad dowolną krawędzią wybranego wielokąta i przeciągnij ją" +
+            "Przesuwanie wielokąta.\n\nNaciśnij i przytrzymaj lewy przycisk myszy nad dowolną krawędzią wybranego wielokąta i przeciągnij ją" +
                 " w wybrane miejsce.";
         public MovePolygonTool(EditorForm form) : base(form) { editorForm.Help(help); }
         Polygon selectedPolygon;

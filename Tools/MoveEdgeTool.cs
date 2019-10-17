@@ -10,7 +10,7 @@ namespace PolygonEditor.Tools
     public class MoveEdgeTool : Tool
     {
         static readonly string help =
-            "Przesuwanie krawędzi.\nNaciśnij i przytrzymaj lewy przycisk myszy nad wybraną krawędzią i przeciągnij ją" +
+            "Przesuwanie krawędzi.\n\nNaciśnij i przytrzymaj lewy przycisk myszy nad wybraną krawędzią i przeciągnij ją" +
                 " w wybrane miejsce.";
         public MoveEdgeTool(EditorForm editorForm) : base(editorForm) { editorForm.Help(help); }
         Edge selectedEdge;
