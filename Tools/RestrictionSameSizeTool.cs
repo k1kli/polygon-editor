@@ -15,11 +15,11 @@ namespace PolygonEditor.Tools
             "Dodawanie relacji równej długości." +
                 "\n\nZaznacz pierwszą z krawędzi która ma być w relacji." +
                 "\nDruga krawędź dostosuje do niej swoją długość" +
-                "\nKrawędzie pozostaną równej długości nawet przy modyfikacji wielokąta",
+                "\n\nAby usunąć relację zaznacz krawędzie będące w relacji równej długości",
             "Dodawanie relacji równej długości." +
                 "\n\nZaznacz drugą z krawędzi która ma być w relacji." +
                 "\nDostosuje ona swoją długość do pierwszej krawędzi" +
-                "\nKrawędzie pozostaną równej długości nawet przy modyfikacji wielokąta"
+                "\n\nAby usunąć relację zaznacz krawędzie będące w relacji równej długości"
         };
         public RestrictionSameSizeTool(EditorForm form) : base(form)
         {

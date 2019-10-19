@@ -64,6 +64,7 @@
     <Compile Include="Tools\MoveEdgeTool.cs" />
     <Compile Include="Tools\CreatePolygonTool.cs" />
     <Compile Include="Tools\MovePointTool.cs" />
+    <Compile Include="Tools\DeletePolygonTool.cs" />
     <Compile Include="Tools\MovePolygonTool.cs" />
     <Compile Include="Tools\RestrictionPerpendicularTool.cs" />
     <Compile Include="Tools\RestrictionSameSizeTool.cs" />

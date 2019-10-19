@@ -91,70 +91,122 @@ namespace PolygonEditor
         }
         public void DrawLine(int x0, int y0, int x1, int y1, Color color)
         {
+            if (!LimitLineEnds(ref x0, ref y0, ref x1, ref y1)) return;
             int argb = color.ToArgb();
             if (Math.Abs(y1 - y0) < Math.Abs(x1 - x0))
                 if (x0 > x1)
-                    PlotLineLow(x1, y1, x0, y0, argb);
+                    PlotLineEW(x1, y1, x0, y0, argb);
                 else
-                    PlotLineLow(x0, y0, x1, y1, argb);
+                    PlotLineEW(x0, y0, x1, y1, argb);
             else
                 if (y0 > y1)
-                PlotLineHigh(x1, y1, x0, y0, argb);
+                PlotLineNS(x1, y1, x0, y0, argb);
             else
-                PlotLineHigh(x0, y0, x1, y1, argb);
+                PlotLineNS(x0, y0, x1, y1, argb);
         }
 
         public void DrawLine(Figures.PolyPoint p1, Figures.PolyPoint p2, Color color)
         {
-            DrawLine((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y, color);
+            int x0 = (int)p1.X, y0 = (int)p1.Y, x1 = (int)p2.X, y1 = (int)p2.Y;
+            DrawLine(x0, y0, x1, y1, color);
         }
 
-        private void PlotLineHigh(int x0, int y0, int x1, int y1, int argb)
+        private class RefPoint
+        {
+            public int X;
+            public int Y;
+        }
+        public bool LimitLineEnds(ref int x0, ref int y0, ref int x1, ref int y1)
+        {
+            RefPoint p0 = new RefPoint{ X=x0, Y=y0 };
+            RefPoint p1 = new RefPoint { X = x1, Y = y1 };
+            RefPoint smallerX = x0 < x1 ? p0 : p1;
+            RefPoint smallerY = y0 < y1 ? p0 : p1;
+            RefPoint biggerX = x0 >= x1 ? p0 : p1;
+            RefPoint biggerY = y0 >= y1 ? p0 : p1;
+
+            if (biggerX.X < 0 || biggerY.Y < 0 || smallerX.X > Width  || smallerY.Y > Height )
+                return false;
+            if(smallerX.X < 0)
+            {
+                smallerX.Y += (biggerX.Y - smallerX.Y) * (-smallerX.X) / (biggerX.X - smallerX.X);
+                smallerX.X = 0;
+            }
+            if(biggerX.X > Width)
+            {
+                biggerX.Y -= (biggerX.Y - smallerX.Y) * (biggerX.X-Width) / (biggerX.X - smallerX.X);
+                biggerX.X = Width;
+            }
+            if(smallerY.Y < 0)
+            {
+                smallerY.X += (biggerY.X - smallerY.X) * (-smallerY.Y) / (biggerY.Y - smallerY.Y);
+                smallerY.Y = 0;
+            }
+            if(biggerY.Y > Height)
+            {
+                biggerY.X -= (biggerY.X - smallerY.X) * (biggerY.Y-Height) / (biggerY.Y - smallerY.Y);
+                biggerY.Y = Height;
+            }
+            x0 = p0.X; y0 = p0.Y; x1 = p1.X; y1 = p1.Y;
+            return true;
+        }
+
+        private void PlotLineNS(int x0, int y0, int x1, int y1, int argb)
         {
             int dx = x1 - x0;
             int dy = y1 - y0;
-            int xi = 1;
+            int incrX = 1;
             if (dx < 0)
             {
-                xi = -1;
+                incrX = -1;
                 dx = -dx;
             }
-            int D = 2 * dx - dy;
+            int d = 2 * dx - dy;
+            int incrS = 2 * dx;
+            int incrSE = 2 * (dx - dy);
             int x = x0;
 
             for (int y = y0; y <= y1; y++)
             {
-                SetPixel(x, y, argb);
-                if (D > 0)
+                if (d < 0)
                 {
-                    x = x + xi;
-                    D = D - 2 * dy;
+                    d += incrS;
                 }
-                D = D + 2 * dx;
+                else
+                {
+                    d += incrSE;
+                    x += incrX;
+                }
+                SetPixel(x, y, argb);
             }
         }
-        private void PlotLineLow(int x0, int y0, int x1, int y1, int argb)
+        private void PlotLineEW(int x0, int y0, int x1, int y1, int argb)
         {
             int dx = x1 - x0;
             int dy = y1 - y0;
-            int yi = 1;
+            int incrY = 1;
             if (dy < 0)
             {
-                yi = -1;
+                incrY = -1;
                 dy = -dy;
             }
-            int D = 2 * dy - dx;
+            int d = 2 * dy - dx;
+            int incrE = 2 * dy;
+            int incrNE = 2 * (dy - dx);
             int y = y0;
 
             for (int x = x0; x <= x1; x++)
             {
-                SetPixel(x, y, argb);
-                if (D > 0)
+                if(d<0)
                 {
-                    y = y + yi;
-                    D = D - 2 * dx;
+                    d += incrE;
                 }
-                D = D + 2 * dy;
+                else
+                {
+                    d += incrNE;
+                    y += incrY;
+                }
+                SetPixel(x, y, argb);
             }
         }
     }

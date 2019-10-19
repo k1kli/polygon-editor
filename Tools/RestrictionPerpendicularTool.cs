@@ -15,12 +15,12 @@ namespace PolygonEditor.Tools
             "Dodawanie relacji prostopadłości." +
                 "\n\nZaznacz pierwszą z krawędzi która ma być w relacji." +
                 "\nDruga krawędź zostanie ustawiona tak aby była prostopadła z pierwszą." +
-                "\nKrawędzie pozostaną prostopadłe nawet przy modyfikacji wielokąta",
+                "\n\nAby usunąć relację zaznacz krawędzie będące w relacji równej długości",
             "Dodawanie relacji równej długości." +
                 "\n\nZaznacz drugą z krawędzi która ma być w relacji." +
                 "\nDostosuje ona swoją długość do pierwszej krawędzi" +
                 "\nDruga krawędź zostanie ustawiona tak aby była prostopadła z pierwszą." +
-                "\nKrawędzie pozostaną prostopadłe nawet przy modyfikacji wielokąta"
+                "\n\nAby usunąć relację zaznacz krawędzie będące w relacji równej długości"
         };
         public RestrictionPerpendicularTool(EditorForm form) : base(form)
         {

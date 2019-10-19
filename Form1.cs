@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,20 +22,19 @@ namespace PolygonEditor
         private Tools.Tool currentTool;
         private Thread clearThread;
         private ThreadStart clearThreadStart;
-        public List<Figures.Polygon> Polygons { get; } = new List<Figures.Polygon>();
+        public List<Figures.Polygon> Polygons { get; private set; } = new List<Figures.Polygon>();
         private const int distanceLimit = 30;
+        private string savePath;
+        private readonly string defaultSaveDir = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Saved scenes");
         public EditorForm()
         {
             InitializeComponent();
             MemoryBitmap = new MemoryBitmap(canvasPictureBox.Width, canvasPictureBox.Height);
-
-            Polygons.Add(new Figures.Polygon(new Point[]{ new Point(20, 30), new Point(55, 100), new Point(150, 70) }, Color.ForestGreen));
             currentTool = new Tools.MovePointTool(this);
             clearThreadStart = new ThreadStart(MemoryBitmap.Clear);
             clearThread = new Thread(clearThreadStart);
             clearThread.Start();
-
-            Redraw();
+            LoadDefaultScene();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -96,6 +98,11 @@ namespace PolygonEditor
         public void Help(string help)
         {
             helpLabel.Text = help;
+        }
+
+        public void DeletePolygon(Polygon polygon)
+        {
+            Polygons.Remove(polygon);
         }
 
         private void CanvasPictureBox_Paint(object sender, PaintEventArgs e)
@@ -174,6 +181,13 @@ namespace PolygonEditor
                 currentTool = new Tools.MovePolygonTool(this);
             }
         }
+        private void DeletePolygonRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (deletePolygonRadioButton.Checked)
+            {
+                currentTool = new Tools.DeletePolygonTool(this);
+            }
+        }
 
         private void DeleteVertexRadioButton_CheckedChanged(object sender, EventArgs e)
         {
@@ -206,5 +220,87 @@ namespace PolygonEditor
             Polygon.DrawLabels = labelsToolStripMenuItem.Checked;
             Redraw();
         }
+
+        private void SavePolygons(Stream fileStream)
+        {
+            IFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(fileStream, Polygons);
+        }
+        private void LoadPolygons(Stream fileStream)
+        {
+            IFormatter formatter = new BinaryFormatter();
+            Polygons = (List<Polygon>)formatter.Deserialize(fileStream);
+            Redraw();
+        }
+
+        private void NewToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            savePath = null;
+            Polygons.Clear();
+            Redraw();
+        }
+
+        private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "Scene files (*.scene)|*.scene|All files (*.*)|*.*";
+            ofd.InitialDirectory = defaultSaveDir;
+            if(ofd.ShowDialog()==DialogResult.OK)
+            {
+                using(Stream s = ofd.OpenFile())
+                    LoadPolygons(s);
+                savePath = ofd.FileName;
+            }
+        }
+
+        private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (savePath == null) SaveAs();
+            else
+            {
+                using (Stream s = new FileStream(savePath, FileMode.OpenOrCreate, FileAccess.Write))
+                    SavePolygons(s);
+            }
+        }
+
+        private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveAs();
+        }
+
+        private void SaveAs()
+        {
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Filter = "Scene files (*.scene)|*.scene|All files (*.*)|*.*";
+            sfd.InitialDirectory = defaultSaveDir;
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                using (Stream s = sfd.OpenFile())
+                    SavePolygons(s);
+                savePath = sfd.FileName;
+            }
+        }
+        private void LoadDefaultScene()
+        {
+            string defaultScenePath = Path.Combine(defaultSaveDir, "DefaultScene.scene");
+            if (File.Exists(defaultScenePath))
+            {
+                using (Stream s = new FileStream(defaultScenePath, FileMode.Open, FileAccess.Read))
+                    LoadPolygons(s);
+            }
+            else
+            {
+                Polygons.Add(new Figures.Polygon(new Point[] {
+                    new Point(20, 30), new Point(55, 100), new Point(150, 70) }, Color.ForestGreen));
+                Redraw();
+            }
+
+        }
+
+        private void EditorForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
     }
 }

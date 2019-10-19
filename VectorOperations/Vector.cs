@@ -29,7 +29,7 @@ namespace PolygonEditor.VectorOperations
         {
             var (A, B, C) = FindEquationOfLinePassingThrough(v1Start, v1End);
             var (D, E, F) = FindEquationOfLinePassingThrough(v2Start, v2End);
-            if (Math.Abs(A) <= 0.01)
+            if (Math.Abs(A) <= 0.001)
             {
                 return new Vector((E * C + F * B) / (-D * B), C/B);
             }

@@ -48,10 +48,29 @@ namespace PolygonEditor
                 {
                     bitmap.SetPixel(x, y, Color.White);
                 }
+            Graphics g = bitmap.GetGraphics();
+            g.DrawString(restriction.HasValue ? "X" : e.RestrictionNum.ToString(), f, Brushes.Black, midX + padding, startY + padding);
             if (!restriction.HasValue) restriction = e.EnactedRestriction;
             DrawRestrictionIcon(bitmap, restriction.Value, startX + padding, startY + padding, midX - padding, endY - padding);
-            Graphics g = bitmap.GetGraphics();
-            g.DrawString(e.RestrictionNum.ToString(), f, Brushes.Black, midX + padding, startY + padding);
+        }
+
+        public static int GetQuadraticZeros(float a, float b, float c, float[] results)
+        {
+            float determinant = b * b - 4 * a * c;
+            if(determinant < 0)
+            {
+                return 0;
+            }
+            if(Math.Abs(determinant) < 0.0001f)
+            {
+                results[0] = -b / (2 * a);
+                return 1;
+            }
+            determinant = (float)Math.Sqrt(determinant);
+            results[0] = (-b - determinant) / (2 * a);
+            results[1] = (-b + determinant) / (2 * a);
+            return 2;
+
         }
 
         private static void DrawRestrictionIcon(MemoryBitmap bitmap, Edge.Restriction restriction, int startX, int startY, int endX, int endY)

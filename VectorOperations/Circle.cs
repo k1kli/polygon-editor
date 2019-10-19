@@ -46,6 +46,42 @@ namespace PolygonEditor.VectorOperations
 
         }
 
+        private static readonly float[] qResults = new float[2];
+        public Vector[] GetIntersectionPointsWith((float A, float B, float C) lineEq)
+        {
+            //solving pair of equations:
+            //Ax+By+C = 0
+            //(x-x1)^2+(y-y1)^2=r^2
+            if(Math.Abs(lineEq.A) < 0.0001f)
+            {
+                int zerosCount = Helper.GetQuadraticZeros(
+                    1,
+                    -2 * Center.X,
+                    Center.X * Center.X + lineEq.C * lineEq.C / (lineEq.B * lineEq.B)
+                    + 2 * Center.Y * lineEq.C / lineEq.B + Center.Y * Center.Y - Radius * Radius,
+                    qResults);
+                Vector baseVec = new Vector(1, -lineEq.C / lineEq.B);
+                if (zerosCount == 0) return new Vector[0];
+                if (zerosCount == 1) return new Vector[1] { baseVec * qResults[0] };
+                return new Vector[2] { baseVec * qResults[0], baseVec * qResults[1] };
+            }
+            else
+            {
+                int zerosCount = Helper.GetQuadraticZeros(
+                    lineEq.B * lineEq.B + lineEq.A*lineEq.A,
+                    2 * (lineEq.B * lineEq.C + Center.X * lineEq.A * lineEq.B - lineEq.A * lineEq.A * Center.Y),
+                    lineEq.C * lineEq.C + 2 * lineEq.A * lineEq.C * Center.X + Center.X * Center.X * lineEq.A * lineEq.A
+                    + lineEq.A * lineEq.A * Center.Y * Center.Y - lineEq.A * lineEq.A * Radius * Radius,
+                    qResults);
+                Vector baseVec = new Vector(-lineEq.B / lineEq.A, 1);
+                Vector addVec = new Vector(-lineEq.C / lineEq.A, 0);
+                if (zerosCount == 0) return new Vector[0];
+                if (zerosCount == 1) return new Vector[1] { baseVec * qResults[0]+addVec };
+                return new Vector[2] { baseVec * qResults[0] + addVec, baseVec * qResults[1] + addVec };
+
+            }
+        }
+
         public static bool operator ==(Circle v1, Circle v2)
         {
             return v1.Radius == v2.Radius && v1.Center == v2.Center;

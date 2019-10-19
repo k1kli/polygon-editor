@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace PolygonEditor.Figures
 {
+    [Serializable]
     public class PolyPoint
     {
         public float X { get; set; }

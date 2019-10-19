@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace PolygonEditor.Figures
 {
+    [Serializable]
     public class Edge
     {
         public Polygon parent { get; }

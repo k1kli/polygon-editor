@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace PolygonEditor.Figures
 {
+    [Serializable]
     public class Polygon
     {
         public PolyPoint First { get; private set; }
@@ -207,6 +208,10 @@ namespace PolygonEditor.Figures
             {
                 if (TryEnactNeighborsSameSize(e, directionOfApplying)) return;
             }
+            else if (e.NextEdgeInDirection(directionOfApplying).EnactedRestriction == Edge.Restriction.Perpendicular)
+            {
+                if (TryEnactNeighborsSameSizePerpendicular(e, directionOfApplying)) return;
+            }
             EnactRestrictionSameSizeBreakingNeighbor(e, directionOfApplying);
         }
         private bool IsSameSizeEnactionNeeded(Edge e)
@@ -250,7 +255,45 @@ namespace PolygonEditor.Figures
             {
                 if (TryEnactNeighborsPerpendicular(e, directionOfApplying)) return;
             }
+            else if(e.NextEdgeInDirection(directionOfApplying).EnactedRestriction == Edge.Restriction.SameSize)
+            {
+                if (TryEnactNeighborsPerpendicularSameSize(e, directionOfApplying)) return;
+            }
             EnactRestrictionPerpendicularBreakingNeighbor(e, directionOfApplying);
+        }
+        private bool TryEnactNeighborsPerpendicularSameSize(Edge eWithPerpendicular, Direction towardsSameSize)
+        {
+            Vector newEdgeVector = eWithPerpendicular.RelatedEdge.GetVectorInDirection(Direction.Forward).GetPerpendicular();
+            Vector start = eWithPerpendicular.NextInDirection(towardsSameSize.Opposite()).GetVector();
+            Edge eWithSameSize = eWithPerpendicular.NextEdgeInDirection(towardsSameSize);
+            Vector sameSizeStart = eWithPerpendicular.NextInDirection(towardsSameSize).NextInDirection(towardsSameSize).GetVector();
+            Vector currentEnd = eWithPerpendicular.NextInDirection(towardsSameSize).GetVector();
+            var lineEq = Vector.FindEquationOfLinePassingThrough(start, start + newEdgeVector);
+            Circle sameSizeEdgeCircle = 
+                new Circle(eWithSameSize.NextInDirection(towardsSameSize).GetVector(), eWithSameSize.GetLength());
+            Vector[] intersectionPoints = sameSizeEdgeCircle.GetIntersectionPointsWith(lineEq);
+            if (intersectionPoints.Length == 0) return false;
+            eWithPerpendicular.NextInDirection(towardsSameSize).FromVector(
+                ChooseBestReplacementPoint(intersectionPoints, eWithPerpendicular.NextInDirection(towardsSameSize).GetVector(), sameSizeStart)
+                );
+            return true;
+        }
+        private bool TryEnactNeighborsSameSizePerpendicular(Edge eWithSameSize, Direction towardsPerpendicular)
+        {
+            float desiredLen = eWithSameSize.RelatedEdge.GetLength();
+            Vector start = eWithSameSize.NextInDirection(towardsPerpendicular.Opposite()).GetVector();
+            Edge eWithPerpendicular = eWithSameSize.NextEdgeInDirection(towardsPerpendicular);
+            Vector perpendicularStart = eWithPerpendicular.NextInDirection(towardsPerpendicular).GetVector();
+            Vector currentEnd = eWithSameSize.NextInDirection(towardsPerpendicular).GetVector();
+            var lineEq = Vector.FindEquationOfLinePassingThrough(perpendicularStart, currentEnd);
+            Circle sameSizeEdgeCircle =
+                new Circle(start, desiredLen);
+            Vector[] intersectionPoints = sameSizeEdgeCircle.GetIntersectionPointsWith(lineEq);
+            if (intersectionPoints.Length == 0) return false;
+            eWithSameSize.NextInDirection(towardsPerpendicular).FromVector(
+                ChooseBestReplacementPoint(intersectionPoints, currentEnd, start)
+                );
+            return true;
         }
 
         private void EnactRestrictionPerpendicularBreakingNeighbor(Edge e, Direction directionOfApplying)
