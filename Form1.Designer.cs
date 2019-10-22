@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.toolsGroupBox = new System.Windows.Forms.GroupBox();
+            this.deletePolygonRadioButton = new System.Windows.Forms.RadioButton();
             this.relationsToolsLabel = new System.Windows.Forms.Label();
             this.polygonToolsLabel = new System.Windows.Forms.Label();
             this.edgeToolsLabel = new System.Windows.Forms.Label();
@@ -52,7 +53,6 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.helpLabel = new System.Windows.Forms.Label();
             this.canvasPictureBox = new System.Windows.Forms.PictureBox();
-            this.deletePolygonRadioButton = new System.Windows.Forms.RadioButton();
             this.toolsGroupBox.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -82,6 +82,18 @@
             this.toolsGroupBox.TabIndex = 1;
             this.toolsGroupBox.TabStop = false;
             this.toolsGroupBox.Text = "Narzędzia";
+            // 
+            // deletePolygonRadioButton
+            // 
+            this.deletePolygonRadioButton.AutoSize = true;
+            this.deletePolygonRadioButton.Location = new System.Drawing.Point(6, 228);
+            this.deletePolygonRadioButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.deletePolygonRadioButton.Name = "deletePolygonRadioButton";
+            this.deletePolygonRadioButton.Size = new System.Drawing.Size(116, 21);
+            this.deletePolygonRadioButton.TabIndex = 12;
+            this.deletePolygonRadioButton.Text = "Usuń wielokąt";
+            this.deletePolygonRadioButton.UseVisualStyleBackColor = true;
+            this.deletePolygonRadioButton.CheckedChanged += new System.EventHandler(this.DeletePolygonRadioButton_CheckedChanged);
             // 
             // relationsToolsLabel
             // 
@@ -212,7 +224,7 @@
             // 
             this.moveVertexRadioButton.AutoSize = true;
             this.moveVertexRadioButton.Checked = true;
-            this.moveVertexRadioButton.Location = new System.Drawing.Point(6, 38);
+            this.moveVertexRadioButton.Location = new System.Drawing.Point(5, 38);
             this.moveVertexRadioButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.moveVertexRadioButton.Name = "moveVertexRadioButton";
             this.moveVertexRadioButton.Size = new System.Drawing.Size(158, 21);
@@ -249,28 +261,28 @@
             // newToolStripMenuItem
             // 
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(176, 26);
             this.newToolStripMenuItem.Text = "Nowy";
             this.newToolStripMenuItem.Click += new System.EventHandler(this.NewToolStripMenuItem_Click);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(176, 26);
             this.openToolStripMenuItem.Text = "Otwórz";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(176, 26);
             this.saveToolStripMenuItem.Text = "Zapisz";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
             // 
             // saveAsToolStripMenuItem
             // 
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(176, 26);
             this.saveAsToolStripMenuItem.Text = "Zapisz jako...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsToolStripMenuItem_Click);
             // 
@@ -325,18 +337,6 @@
             this.canvasPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CanvasPictureBox_MouseDown);
             this.canvasPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CanvasPictureBox_MouseMove);
             this.canvasPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CanvasPictureBox_MouseUp);
-            // 
-            // deletePolygonRadioButton
-            // 
-            this.deletePolygonRadioButton.AutoSize = true;
-            this.deletePolygonRadioButton.Location = new System.Drawing.Point(6, 228);
-            this.deletePolygonRadioButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.deletePolygonRadioButton.Name = "deletePolygonRadioButton";
-            this.deletePolygonRadioButton.Size = new System.Drawing.Size(116, 21);
-            this.deletePolygonRadioButton.TabIndex = 12;
-            this.deletePolygonRadioButton.Text = "Usuń wielokąt";
-            this.deletePolygonRadioButton.UseVisualStyleBackColor = true;
-            this.deletePolygonRadioButton.CheckedChanged += new System.EventHandler(this.DeletePolygonRadioButton_CheckedChanged);
             // 
             // EditorForm
             // 

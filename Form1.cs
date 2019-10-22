@@ -283,9 +283,15 @@ namespace PolygonEditor
         private void LoadDefaultScene()
         {
             string defaultScenePath = Path.Combine(defaultSaveDir, "DefaultScene.scene");
+            string alternativeScenePath = "DefaultScene.scene";
             if (File.Exists(defaultScenePath))
             {
                 using (Stream s = new FileStream(defaultScenePath, FileMode.Open, FileAccess.Read))
+                    LoadPolygons(s);
+            }
+            else if(File.Exists(alternativeScenePath))
+            {
+                using (Stream s = new FileStream(alternativeScenePath, FileMode.Open, FileAccess.Read))
                     LoadPolygons(s);
             }
             else

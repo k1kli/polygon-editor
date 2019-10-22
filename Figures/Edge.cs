@@ -63,7 +63,7 @@ namespace PolygonEditor.Figures
             e1.RelatedEdge = e2;
             e2.RelatedEdge = e1;
             e1.RestrictionNum = e2.RestrictionNum = e1.parent.GetRelationNum();
-            e1.parent.EnactRestriction(e2, Direction.Forward);
+            e1.parent.EnactRestriction(e2, e2.NextEdge == e1 ? Direction.Backwards : Direction.Forward);
             e1.RestrictionData = e2.RestrictionData = restrictionData;
         }
         public void ClearRestriction()

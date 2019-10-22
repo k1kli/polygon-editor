@@ -132,17 +132,17 @@ namespace PolygonEditor
                 smallerX.Y += (biggerX.Y - smallerX.Y) * (-smallerX.X) / (biggerX.X - smallerX.X);
                 smallerX.X = 0;
             }
-            if(biggerX.X > Width)
+            if(biggerX.X > Width && smallerX.X < biggerX.X)
             {
                 biggerX.Y -= (biggerX.Y - smallerX.Y) * (biggerX.X-Width) / (biggerX.X - smallerX.X);
                 biggerX.X = Width;
             }
-            if(smallerY.Y < 0)
+            if(smallerY.Y < 0 && smallerY.Y < biggerY.Y)
             {
                 smallerY.X += (biggerY.X - smallerY.X) * (-smallerY.Y) / (biggerY.Y - smallerY.Y);
                 smallerY.Y = 0;
             }
-            if(biggerY.Y > Height)
+            if(biggerY.Y > Height && smallerY.Y < biggerY.Y)
             {
                 biggerY.X -= (biggerY.X - smallerY.X) * (biggerY.Y-Height) / (biggerY.Y - smallerY.Y);
                 biggerY.Y = Height;

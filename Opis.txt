@@ -1,0 +1,79 @@
+Po lewej stronie ekranu znajduje się wybór narzędzia, które będzie wykorzystywane do modyfikowania stanu sceny
+Po wybraniu któregoś z narzędzi klikanie i przesuwanie myszą wywołuje akcje specyficzne dla danego narzędzia.
+Pod menu wyboru narzędzi znajduje się instrukcja jak korzystać z aktualnie wybranego narzędzia
+
+Instrukcja wykonywania akcji podanych w specyfikacji projektu:
+-dodawanie nowego wielokąta: Narzędzie "Dodaj Wielokąt", należy naciskać na panelu do rysowania w punktach,
+w których mają znajdować się kolejne wierzchołki tworzonego wielokąta.
+W celu zakończenia tworzenia wielokąta nacisnąć ponownie na pierwszy wierzchołek.
+-usuwanie wielokąta: Narzędzie "Usuń Wielokąt", nacisnąć dowolną z krawędzi wielokąta do usunięcia
+-przesuwanie wierzchołka: Narzędzie "przesuń wierzchołek", należy nacisnąć i przytrzymać lewy przycisk myszy
+trzymając kursor nad wybranym wierzchołkiem przeciągając go w wybrane miejsce.
+-usuwanie wierzchołka: Narzędzie "Usuń wierzchołek", należy nacisnąć na wybrany wierzchołek
+-dodawanie wierzchołka w środku wybranej krawędzi: Narzędzie "Dodaj wierzchołek na środku krawędzi" należy nacisnąć na wybraną krawędź
+-przesuwanie całej krawędzi: Narzędzie "Przesuń krawędź", należy nacisnąć i przytrzymać lewy przycisk myszy
+trzymając kursor nad wybraną krawędzią przeciągając ją w wybrane miejsce
+-przesuwanie całego wielokąta: Narzędzie "Przesuń wielokąt",należy nacisnąć i przytrzymać lewy przycisk myszy
+trzymając kursor nad dowolną krawędzią wybranego wielokąta przeciągając ją w wybrane miejsce
+
+-dodanie relacji równej długości: Narzędzie "Równa długość", należy nacisnąć najpierw na pierwszą,
+a potem na drugą z krawędzi która ma być w relacji, istniejące na nich relacje zostaną usunięte
+-dodanie relacji prostopadłości: Narzędzie "Prostopadłe", należy nacisnąć najpierw na pierwszą,
+a potem na drugą z krawędzi która ma być w relacji, istniejące na nich relacje zostaną usunięte
+-usuwanie relacji typu X: Narzędzie relacji typu X, naciskamy na dwie krawędzie które są ze sobą w relacji typu X
+
+Pojawienie się wielokąta z relacjami przy uruchomieniu wymaga pliku o nazwie "DefaultScene.scene" w katalogu z plikiem wykonalnym projektu.
+
+Przyjęte założenia:
+Poprawianie relacji jest rekurencyjne i może sprawić, że przesuwany wierzchołek lub krawędź
+nie będzie znajdował się pod kursorem na końcu poprawiania.
+Rozmiar obszaru rysowania jest stały.
+Próba usunięcia jednego z wierzchołków trójkąta zakończy się niepowodzeniem i pojawieniem się na ekranie komunikatu informującego o tym.
+
+Opis algorytmu relacji:
+Dla każdej krawędzi pozostającej w relacji może zostać wywołana metoda wymuszająca dostosowanie się do drugiej z krawędzi w relacji,
+tak aby nałożona relacja została zachowana.
+Metoda ta wywoływana jest z parametrem kierunku: do przodu lub do tyłu na liście dwukierunkowej.
+Przy dostosowywaniu się do relacji zostanie zmieniona tylko pozycja wierzchołka w kierunku przekazanym przez parametr,
+drugi z wierzchołków pozostanie bez zmian.
+Gdy dla krawędzi e zostanie ta wywołana ta metoda z parametrem kierunku k to:
+Najpierw sprawdzamy czy relacja już jest zachowana, jeśli tak to kończymy wywołanie metody.
+Potem sprawdzamy czy krawędź da się naprawić w kierunku k bez dalszych wywołań rekurencyjnych:
+
+-Kiedy e jest w relacji równej długości, a krawędź w kierunku k od e(nazwijmy ją e1) jest też w relacji równej długości 
+znajdujemy punkty przecięcia okręgów o promieniach: oczekiwana długość e oraz długość krawędzi e1
+oraz o środkach będących punktami tych krawędzi, które nie są ich punktem wspólnym. Jeśli okręgi te się przecinają,
+bierzemy punkt przecięcia, taki że nowa krawędź e jest bardziej podobna do starej krawędzi e
+(podobieństwo dwóch krawędzi wyznaczamy na podstawie iloczynu skalarnego znormalizowanych wektorów krawędzi
+począwszy od ich wspólnego punktu, im większy tym krawędzie bardziej podobne)
+
+-kiedy e jest w relacji równej długości, a krawędź w kierunku k od e(krawędź e1) jest w relacji prostopadłości,
+znajdujemy punkty przecięcia okręgu o środku w nieruchomym wierzchołku e i o promieniu oczekiwanej długości e
+oraz lini na której leży krawędź e1, bierzemy punkt przecięcia taki, że nowa krawędź e jest bardziej podobna do jej starej wersji
+
+-kiedy e jest w relacji prostopadłości, a krawędź w kierunku k od e(krawędź e1) jest w relacji równej długości,
+znajdujemy punkty przecięcia okręgu o środku w nieruchomym wierzchołku e1 i o promieniu długości równej długości e1
+oraz linii prostopadłej do krawędzi z którą e jest w relacji, przechodzącej przez nieruchomy wierzchołek e.
+Bierzemy punkt przecięcia taki, że nowa krawędź e1 jest bardziej podobna do jej starej wersji
+
+-kiedy e jest w relacji prostopadłości, a krawędź w kierunku k od e(krawędź e1) jest też w relacji prostopadłości
+znajdujemy punkt przecięcia lini: prostopadłej do krawędzi z którą e jest w relacji i przechodzącej
+przez nieruchomy wierzchołek e oraz prostopadłej do krawędzi z którą e1 jest w relacji i przechodzącej przez nieruchomy wierzchołek e1
+
+Jeśli nie uda się znaleźć punktów przecięcia w powyższych przypadkach to:
+-dla e w relacji równej długości, e jest wydłużana wzdłuż linii na której leży w kierunku k,
+lub skracana w kierunku przeciwnym do k (zmieniana jest pozycja wierzchołka e w kierunku k)
+-dla e w relacji prostopadłości, e jest umieszczana na linii prostopadłej do wektora krawędzi będącej w relacji z e
+(przesuwany jest wierzchołek e w kierunku k aby tam się znalazła)
+W obu przypadkach jeśli krawędź w kierunku k od e jest w relacji z jakąś krawędzią e2, to dla e2 wywoływana jest
+metoda wymuszająca dostosowanie się do relacji z parametrem kierunku przeciwnym do k.
+
+Metoda ta jest wywoływana przy:
+Przesuwaniu wierzchołka - dla krawędzi będącej w relacji z krawędzią poprzedzającą przesuwany wierzchołek z parametrem kierunku NASTĘPNY
+oraz dla krawędzi będącej w relacji z krawędzią następującą po przesuwanym wierzchołku z parametrem kierunku POPRZEDNI
+
+Przesuwaniu krawędzi - dla krawędzi będącej w relacji z krawędzią poprzedzającą przesuwaną krawędź z parametrem kierunku NASTĘPNY
+oraz dla krawędzi będącej w relacji z krawędzią następującą po przesuwanej krawędzi z parametrem kierunku POPRZEDNI
+
+Tworzeniu relacji - dla drugiej krawędzi wybranej przy tworzeniu relacji, z parametrem kierunku NASTĘPNY, chyba że następna jest pierwsza
+z krawędzi w tworzonej relacji wtedy z parametrem kierunku POPRZEDNI.
