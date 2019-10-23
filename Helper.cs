@@ -102,15 +102,15 @@ namespace PolygonEditor
 
         private static void DrawRestrictionSameSizeIcon(MemoryBitmap bitmap, int startX, int startY, int endX, int endY)
         {
-            startX = (startX + endX) / 2 - 3;
-            endX = startX + 6;
-            startY++;
-            endY--;
+            startY = (startY + endY) / 2 - 3;
+            endY = startY + 6;
+            startX++;
+            endX--;
 
-            for (int y = startY; y <= endY; y++)
+            for (int x = startX; x <= endX; x++)
             {
-                bitmap.SetPixel(startX, y, Color.Black);
-                bitmap.SetPixel(endX, y, Color.Black);
+                bitmap.SetPixel(x, startY, Color.Black);
+                bitmap.SetPixel(x, endY, Color.Black);
             }
         }
     }
